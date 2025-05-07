@@ -17,7 +17,8 @@ import com.flowmate.ui.screen.ChronometerScreen
 import com.flowmate.ui.screen.HomeScreen
 import com.flowmate.ui.screen.LoginScreen
 import com.flowmate.ui.screen.MainFrame
-import com.flowmate.ui.screen.MyHabitsWithAdd
+
+import com.flowmate.ui.screen.MyHabitsWithModalSheet
 import com.flowmate.ui.screen.MyTasksScreen
 import com.flowmate.ui.screen.ReportsScreen
 import com.flowmate.ui.screen.SignUpScreen
@@ -134,11 +135,13 @@ private fun NavGraphBuilder.mainNavGraph(
             )
 
              */
-            MyHabitsWithAdd(
+            MyHabitsWithModalSheet(
                 habits = habits,
-                onAddHabit = { title ->
-                //authViewModel.addHabit(title)
-                }
+                suggestions = suggestions,
+                onToggleComplete = authViewModel::toggleHabitCompletion,
+                onAddHabit = { /* Add Habit logic */ },
+
+
             )
         }
 
@@ -146,28 +149,9 @@ private fun NavGraphBuilder.mainNavGraph(
         composable(MainRoute.Tasks.route) {
             // Use the existing authViewModel instance to get tasks
             //val tasks = authViewModel.tasks.collectAsState(initial = emptyList()).value
-            MyTasksScreen(
-                tasks = emptyList(),
 
-                onToggleTask = { taskId ->
-                    //authViewModel.toggleTaskCompletion(taskId)
-                },
-                onAddTask = {
-                    // Navigate to AddTaskScreen
-                    //navController.navigate(MainRoute.AddTask.route)
-                }
+        }
 
-            )
-        }
-        composable(MainRoute.AddTask.route) {
-            AddTaskScreen(
-                onAdd = { task ->
-                    // Handle adding the new task
-                    //authViewModel.addTask(task)
-                    navController.popBackStack() // Go back after adding the task
-                }
-            )
-        }
         composable(MainRoute.Calendar.route) {
             CalendarScreen()
         }

@@ -108,11 +108,3 @@ fun AddTaskScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAddTaskScreen() {
-    FlowMateTheme {
-        AddTaskScreen(onAdd = {})
-    }
-}
-
