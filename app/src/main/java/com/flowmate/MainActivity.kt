@@ -5,10 +5,6 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.flowmate.ui.component.FlowMateNavGraph
 import com.flowmate.ui.theme.FlowMateTheme
@@ -16,7 +12,7 @@ import com.flowmate.viewmodel.AuthViewModel
 
 class MainActivity : ComponentActivity() {
     // ViewModel initialization can be done here if needed
-    private val authViewModel: AuthViewModel by viewModels()  // androidX activity-ktx
+    private val authViewModel: AuthViewModel = AuthViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,12 +30,10 @@ class MainActivity : ComponentActivity() {
         // Set the content view to the LoginScreen
         setContent {
             FlowMateTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    FlowMateNavGraph(
-                        authViewModel = authViewModel,
-                    )
-                    innerPadding
-                }
+                FlowMateNavGraph(
+                    authViewModel = authViewModel,
+                )
+
             }
         }
     }

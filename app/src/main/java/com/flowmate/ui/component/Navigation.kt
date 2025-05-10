@@ -11,47 +11,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.flowmate.ui.screen.AddTaskScreen
 import com.flowmate.ui.screen.CalendarScreen
 import com.flowmate.ui.screen.ChronometerScreen
 import com.flowmate.ui.screen.HomeScreen
 import com.flowmate.ui.screen.LoginScreen
-import com.flowmate.ui.screen.MainFrame
-
 import com.flowmate.ui.screen.MyHabitsWithModalSheet
 import com.flowmate.ui.screen.MyTasksScreen
+import com.flowmate.ui.screen.ProfileScreen
 import com.flowmate.ui.screen.ReportsScreen
 import com.flowmate.ui.screen.SignUpScreen
 import com.flowmate.viewmodel.AuthViewModel
-
-// 1. Define your routes
-sealed class AuthRoute(val route: String) {
-    data object Login : AuthRoute("login")
-    data object SignUp : AuthRoute("signup")
-}
-
-sealed class MainRoute(val route: String) {
-    data object Home : MainRoute("home")
-    data object Habits : MainRoute("habits")
-    data object Tasks : MainRoute("tasks")
-    data object Calendar : MainRoute("calendar")
-    data object Chronometer : MainRoute("chronometer")
-    data object Reports : MainRoute("reports")
-    data object Profile : MainRoute("profile")
-    data object Theme : MainRoute("theme")
-    data object Achievements : MainRoute("achievements")
-    data object Settings : MainRoute("settings")
-    data object AddTask : MainRoute("add_task") // Add AddTask route
-}
+import com.flowmate.viewmodel.MyHabitsViewModal
+import com.flowmate.viewmodel.MyTasksViewModal
 
 @Composable
 fun FlowMateNavGraph(
     authViewModel: AuthViewModel
 ) {
     val navController = rememberNavController()
-
+    val currentRoute = rememberCurrentRoute(navController)
     val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState(initial = false)
-    val userName by authViewModel.currentUserName.collectAsState(initial = "")
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
@@ -63,15 +42,15 @@ fun FlowMateNavGraph(
 
     if (isLoggedIn) {
         MainFrame(
-            userName = userName,
             onNavigateTo = { route -> navController.navigate(route.route) },
             onLogout = { authViewModel.signOut() },
+            currentDestination = currentRoute,
         ) {
             NavHost(
                 navController = navController,
                 startDestination = "main"
             ) {
-                mainNavGraph(navController, authViewModel)
+                mainNavGraph(navController)
             }
         }
     } else {
@@ -107,12 +86,17 @@ private fun NavGraphBuilder.authNavGraph(
 }
 
 private fun NavGraphBuilder.mainNavGraph(
-    navController: NavHostController,
-    authViewModel: AuthViewModel
+    navController: NavHostController
 ) {
+    // Use the existing authViewModel instance to get tasks
+    val authViewModel = AuthViewModel()
+    val myTasksViewModal = MyTasksViewModal()
+    val myHabitViewModal = MyHabitsViewModal()
+
     navigation(startDestination = MainRoute.Home.route, route = "main") {
+
         composable(MainRoute.Home.route) {
-            val userName by authViewModel.currentUserName.collectAsState(initial = "")
+            val userName by authViewModel.currentUserName.collectAsState()
             HomeScreen(
                 modifier = Modifier,
                 userName = userName,
@@ -124,32 +108,36 @@ private fun NavGraphBuilder.mainNavGraph(
             )
         }
         composable(MainRoute.Habits.route) {
-            val habits by authViewModel.habits.collectAsState(initial = emptyList())
-            val suggestions by authViewModel.habitSuggestions.collectAsState(initial = emptyList())
-            /*
-            MyHabitScreen(
-                habits = habits,
-                suggestions = suggestions,
-                onToggleComplete = authViewModel::toggleHabitCompletion,
-                onAddHabit = { /* Add Habit logic */ }
-            )
+            val habits by myHabitViewModal.habits.collectAsState(initial = emptyList())
+            val suggestions by myHabitViewModal.habitSuggestions.collectAsState(initial = emptyList())
 
-             */
             MyHabitsWithModalSheet(
                 habits = habits,
                 suggestions = suggestions,
-                onToggleComplete = authViewModel::toggleHabitCompletion,
-                onAddHabit = { /* Add Habit logic */ },
-
-
+                onToggleComplete = { habit ->
+                    myHabitViewModal.toggleHabitCompletion(habit)
+                },
+                onAddHabit = {
+                },
             )
         }
 
 
         composable(MainRoute.Tasks.route) {
-            // Use the existing authViewModel instance to get tasks
-            //val tasks = authViewModel.tasks.collectAsState(initial = emptyList()).value
+            val tasks by myTasksViewModal.tasks.collectAsState(initial = emptyList())
+            val suggestions by myTasksViewModal.tasks.collectAsState(initial = emptyList())
 
+            MyTasksScreen(
+                tasks = tasks,
+                onToggleTask = { task ->
+                    myTasksViewModal.toggleTaskCompletion(task)
+                },
+                onAddTask = {
+                    // Handle adding a new task
+
+                    //navController.navigate(MainRoute.AddTask.route)
+                },
+            )
         }
 
         composable(MainRoute.Calendar.route) {
@@ -169,7 +157,13 @@ private fun NavGraphBuilder.mainNavGraph(
             )
         }
         composable(MainRoute.Profile.route) {
-            // TODO: Profile screen logic
+            ProfileScreen(
+                currentName = authViewModel.currentUserName.collectAsState().value,
+                onNameChange = { /* Handle name change */ },
+                onSaveName = { /* Handle save name */ },
+                onResetProgress = { /* Handle reset progress */ },
+                onExportData = { /* Handle export data */ }
+            )
         }
         composable(MainRoute.Theme.route) {
             // TODO: Theme settings screen logic

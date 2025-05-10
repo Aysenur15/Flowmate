@@ -1,4 +1,4 @@
-package com.flowmate.ui.screen
+package com.flowmate.ui.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -31,17 +31,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.flowmate.ui.component.MainRoute
 import kotlinx.coroutines.launch
+import java.util.Locale
 
-
-// 2) HomeScreen with drawer
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainFrame(
-    userName: String,
     onNavigateTo: (MainRoute) -> Unit,
     onLogout: () -> Unit,
+    currentDestination: String,
     content: @Composable () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -49,17 +47,27 @@ fun MainFrame(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = true,
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                modifier = Modifier
+                    .padding(0.dp)
+                    .fillMaxSize(0.7f),
+                drawerTonalElevation = 16.dp,
+                drawerShape = MaterialTheme.shapes.large,
+            ) {
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    text = "FLOWMATE",
+                    text = "Flow Mate",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
                 HorizontalDivider()
                 Spacer(Modifier.height(8.dp))
 
+                DrawerItem("Calendar") { onNavigateTo(MainRoute.Calendar) }
+                DrawerItem("Chronometer") { onNavigateTo(MainRoute.Chronometer) }
+                DrawerItem("Reports") { onNavigateTo(MainRoute.Reports) }
                 DrawerItem("Profile") { onNavigateTo(MainRoute.Profile) }
                 DrawerItem("Theme") { onNavigateTo(MainRoute.Theme) }
                 DrawerItem("Achievements") { onNavigateTo(MainRoute.Achievements) }
@@ -76,7 +84,20 @@ fun MainFrame(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("FLOW MATE", style = MaterialTheme.typography.titleLarge) },
+                    title = {
+                        Text(
+                            // Capitalize the first letter of each word
+                            text = currentDestination
+                                .split(" ")
+                                .joinToString(" ")
+                                {
+                                    it.replaceFirstChar { char ->
+                                        char.uppercase(Locale.getDefault())
+                                    }
+                                },
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
                     colors = TopAppBarDefaults.mediumTopAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent

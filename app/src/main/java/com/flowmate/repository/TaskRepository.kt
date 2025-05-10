@@ -1,6 +1,6 @@
 package com.flowmate.repository
 
-import com.flowmate.ui.screen.TaskItem
+import com.flowmate.ui.component.TaskItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -34,7 +34,7 @@ class TaskRepository @Inject constructor() {
 
     // Add a new task
     fun addTask(task: TaskItem) {
-        _tasks.value = _tasks.value + task
+        _tasks.value += task
     }
 
 }

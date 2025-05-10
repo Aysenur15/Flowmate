@@ -41,7 +41,7 @@ fun ChronometerScreen() {
     // Stopwatch state
     var startTime by remember { mutableLongStateOf(0L) }
     var accumulated by remember { mutableLongStateOf(0L) }
-    var elapsed by remember { mutableStateOf(0L) }
+    var elapsed by remember { mutableLongStateOf(0L) }
     var isRunning by remember { mutableStateOf(false) }
     var laps by remember { mutableStateOf(listOf<Long>()) }
 
@@ -51,7 +51,7 @@ fun ChronometerScreen() {
             startTime = System.currentTimeMillis()
             while (isRunning) {
                 elapsed = System.currentTimeMillis() - startTime + accumulated
-                delay(50L)
+                delay(1L)
             }
             accumulated = elapsed
         }
@@ -77,8 +77,11 @@ fun ChronometerScreen() {
 
             // Controls: Start/Pause, Lap, Reset
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(vertical = 16.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .fillMaxWidth()
+
             ) {
                 // Start / Pause button
                 Button(
@@ -89,7 +92,7 @@ fun ChronometerScreen() {
                         imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isRunning) "Pause" else "Start"
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(4.dp))
                     Text(if (isRunning) "Pause" else "Start")
                 }
 
@@ -161,7 +164,7 @@ private fun formatTime(ms: Long): String {
         }
         append(":")
         append("%02d".format(seconds))
-        append(".")
+        append(":")
         append("%02d".format(centis))
     }
 }
