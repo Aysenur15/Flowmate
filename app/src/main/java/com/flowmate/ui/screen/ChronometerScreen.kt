@@ -41,7 +41,7 @@ fun ChronometerScreen() {
     // Stopwatch state
     var startTime by remember { mutableLongStateOf(0L) }
     var accumulated by remember { mutableLongStateOf(0L) }
-    var elapsed by remember { mutableStateOf(0L) }
+    var elapsed by remember { mutableLongStateOf(0L) }
     var isRunning by remember { mutableStateOf(false) }
     var laps by remember { mutableStateOf(listOf<Long>()) }
 

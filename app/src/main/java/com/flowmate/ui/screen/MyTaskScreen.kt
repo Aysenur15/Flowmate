@@ -23,39 +23,18 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.flowmate.ui.component.AddItemBottomSheet
 import com.flowmate.ui.theme.CardShape
 import com.flowmate.ui.theme.DoneColor
 import com.flowmate.ui.theme.PendingColor
 import com.flowmate.ui.theme.TaskCardBg
-import androidx.compose.material3.SheetValue
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material3.*
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 
 // 2) Data model for a task
 data class TaskItem(
@@ -132,160 +111,21 @@ fun MyTasksScreen(
     }
 }
 
+// 4) Preview with sample data
+@Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyHabitsWithModalSheet(
-    habits: List<Habit>,
-    suggestions: List<SmartSuggestion>,
-    onToggleComplete: (String) -> Unit,
-    onAddHabit: (String) -> Unit
-) {
-    // 1️⃣ Sheet state & coroutine scope
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.Expanded },
+fun PreviewMyTasksScreen() {
+    val sampleTasks = listOf(
+        TaskItem("1", "Finish project proposal", "Today, 3:00 PM", isCompleted = false),
+        TaskItem("2", "Grocery shopping", "Tomorrow, 10:00 AM", isCompleted = true),
+        TaskItem("3", "Call Alice", "Today, 6:30 PM", isCompleted = false),
     )
-    val scope = rememberCoroutineScope()
-
-    // 2️⃣ Form state inside sheet
-    var newHabitName by remember { mutableStateOf("") }
-
-    // 3️⃣ The sheet itself
-    if (sheetState.isVisible) {
-        ModalBottomSheet(
-            onDismissRequest = { scope.launch { sheetState.hide() } },
-            sheetState = sheetState,
-            tonalElevation = 8.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-            ) {
-                Text("New Habit", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(16.dp))
-
-                // Input field
-                OutlinedTextField(
-                    value = newHabitName,
-                    onValueChange = { newHabitName = it },
-                    label = { Text("Habit name") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(24.dp))
-
-                // Buttons row
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Cancel
-                    OutlinedButton(
-                        onClick = {
-                            newHabitName = ""
-                            scope.launch { sheetState.hide() }
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    // Add
-                    Button(
-                        onClick = {
-                            if (newHabitName.isNotBlank()) {
-                                onAddHabit(newHabitName.trim())
-                                newHabitName = ""
-                            }
-                            scope.launch { sheetState.hide() }
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Add")
-                    }
-                }
-            }
-        }
-    }
-
-    // 4️⃣ Main Scaffold with FAB
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = { println("Add Habit clicked")
-                scope.launch { sheetState.show() }
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Habit")
-            }
-        }
-    ) { padding ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // AI suggestions strip
-            if (suggestions.isNotEmpty()) {
-                Text(
-                    text = "Suggestions for you",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(suggestions) { s ->
-                        Card(
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.size(200.dp, 100.dp)
-                        ) {
-                            Box(Modifier.padding(12.dp)) {
-                                Text(s.text, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-            }
-
-            // Habits list
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                itemsIndexed(habits) { _, habit ->
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                progress = habit.weeklyProgress,
-                                modifier = Modifier.size(48.dp),
-                                strokeWidth = 6.dp
-                            )
-                            Spacer(Modifier.width(16.dp))
-                            Text(
-                                text = habit.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { onToggleComplete(habit.id) }) {
-                                val icon = if (habit.isCompletedToday)
-                                    Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked
-                                Icon(icon, contentDescription = null)
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    MaterialTheme {
+        MyTasksScreen(
+            tasks = sampleTasks,
+            onToggleTask = {},
+            onAddTask = {}
+        )
     }
 }
-

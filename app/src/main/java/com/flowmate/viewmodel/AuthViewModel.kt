@@ -79,6 +79,6 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                 )
             } else habit
         }
-        _habits.value =updated
-        }
+        _habits.value = updated
+    }
 }

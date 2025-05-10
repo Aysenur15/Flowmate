@@ -11,14 +11,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.flowmate.ui.screen.AddTaskScreen
 import com.flowmate.ui.screen.CalendarScreen
 import com.flowmate.ui.screen.ChronometerScreen
 import com.flowmate.ui.screen.HomeScreen
 import com.flowmate.ui.screen.LoginScreen
 import com.flowmate.ui.screen.MainFrame
-
-import com.flowmate.ui.screen.MyHabitsWithModalSheet
+import com.flowmate.ui.screen.MyHabitScreen
 import com.flowmate.ui.screen.MyTasksScreen
 import com.flowmate.ui.screen.ReportsScreen
 import com.flowmate.ui.screen.SignUpScreen
@@ -41,7 +39,6 @@ sealed class MainRoute(val route: String) {
     data object Theme : MainRoute("theme")
     data object Achievements : MainRoute("achievements")
     data object Settings : MainRoute("settings")
-    data object AddTask : MainRoute("add_task") // Add AddTask route
 }
 
 @Composable
@@ -112,6 +109,7 @@ private fun NavGraphBuilder.mainNavGraph(
 ) {
     navigation(startDestination = MainRoute.Home.route, route = "main") {
         composable(MainRoute.Home.route) {
+            // 2️⃣ collect your flows here
             val userName by authViewModel.currentUserName.collectAsState(initial = "")
             HomeScreen(
                 modifier = Modifier,
@@ -126,32 +124,23 @@ private fun NavGraphBuilder.mainNavGraph(
         composable(MainRoute.Habits.route) {
             val habits by authViewModel.habits.collectAsState(initial = emptyList())
             val suggestions by authViewModel.habitSuggestions.collectAsState(initial = emptyList())
-            /*
             MyHabitScreen(
                 habits = habits,
                 suggestions = suggestions,
                 onToggleComplete = authViewModel::toggleHabitCompletion,
-                onAddHabit = { /* Add Habit logic */ }
-            )
-
-             */
-            MyHabitsWithModalSheet(
-                habits = habits,
-                suggestions = suggestions,
-                onToggleComplete = authViewModel::toggleHabitCompletion,
-                onAddHabit = { /* Add Habit logic */ },
-
-
+                onAddHabit = { /*…*/ }
             )
         }
-
-
         composable(MainRoute.Tasks.route) {
-            // Use the existing authViewModel instance to get tasks
-            //val tasks = authViewModel.tasks.collectAsState(initial = emptyList()).value
-
+            MyTasksScreen(
+                tasks = emptyList(), // Replace with actual task list
+                onAddTask = { /* Handle adding a new task */ },
+                onToggleTask = { taskId ->
+                    // Handle toggling task completion
+                    /**/
+                }
+            )
         }
-
         composable(MainRoute.Calendar.route) {
             CalendarScreen()
         }
@@ -161,7 +150,10 @@ private fun NavGraphBuilder.mainNavGraph(
         composable(MainRoute.Reports.route) {
             ReportsScreen(
                 entries = emptyList(), // Replace with actual entries
-                onEntryClick = { entry -> /* Handle entry click */ },
+                onEntryClick = { entry ->
+                    // Handle entry click
+                    /**/
+                },
                 onRefresh = { /* Handle refresh */ },
                 weeklyProgress = 0f, // Replace with actual progress
                 yearlyProgress = 0f, // Replace with actual progress
@@ -169,16 +161,17 @@ private fun NavGraphBuilder.mainNavGraph(
             )
         }
         composable(MainRoute.Profile.route) {
-            // TODO: Profile screen logic
+            //TODO
         }
         composable(MainRoute.Theme.route) {
-            // TODO: Theme settings screen logic
+            //TODO
         }
         composable(MainRoute.Achievements.route) {
-            // TODO: Achievements screen logic
+            //TODO
         }
         composable(MainRoute.Settings.route) {
-            // TODO: Settings screen logic
+            //TODO
         }
+        // Add more composable destinations as needed
     }
 }
