@@ -24,7 +24,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +55,11 @@ import com.flowmate.ui.theme.HabitCardBg
 import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import kotlinx.coroutines.launch
+import androidx.compose.material3.Switch
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.DropdownMenuItem
+import com.flowmate.viewmodel.MyHabitsViewModal
+
 
 // 3. The MyHabitsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,6 +69,7 @@ fun MyHabitsScreen(
     suggestions: List<SmartSuggestion>,
     onToggleComplete: (habitId: String) -> Unit,
     onAddHabit: () -> Unit
+
 ) {
 
     Scaffold(
@@ -184,19 +192,23 @@ fun MyHabitsWithModalSheet(
     habits: List<Habit>,
     suggestions: List<SmartSuggestion>,
     onToggleComplete: (String) -> Unit,
-    onAddHabit: (String) -> Unit
+    onAddHabit: (Habit) -> Unit
 ) {
-    // 1️⃣ Sheet state & coroutine scope
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        /*confirmValueChange = { it != SheetValue.Expanded },*/
-    )
+    // ✅ Correctly declared sheet state and scope
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    // 2️⃣ Form state inside sheet
-    var newHabitName by remember { mutableStateOf("") }
 
-    // 3️⃣ The sheet itself
+    var newHabitName by remember { mutableStateOf("") }
+    var hardnessLevel by remember { mutableStateOf("") }
+    var frequencyCount by remember { mutableStateOf("") }
+    var frequencyPeriod by remember { mutableStateOf("") }
+    var periodDropdownExpanded by remember { mutableStateOf(false) }
+    val periodOptions = listOf("day", "week", "month", "year")
+    var reminderEnabled by remember { mutableStateOf(false) }
+    var reminderTime by remember { mutableStateOf("") }
+
+    // ✅ Modal Bottom Sheet
     if (sheetState.isVisible) {
         ModalBottomSheet(
             onDismissRequest = { scope.launch { sheetState.hide() } },
@@ -212,7 +224,6 @@ fun MyHabitsWithModalSheet(
                 Text("New Habit", style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(16.dp))
 
-                // Input field
                 OutlinedTextField(
                     value = newHabitName,
                     onValueChange = { newHabitName = it },
@@ -221,17 +232,89 @@ fun MyHabitsWithModalSheet(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = hardnessLevel,
+                    onValueChange = {
+                        if (it.all { c -> c.isDigit() } && (it.toIntOrNull() ?: 0) in 1..5 || it.isBlank()) {
+                            hardnessLevel = it
+                        }
+                    },
+                    label = { Text("Hardness level (1-5)") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = frequencyCount,
+                    onValueChange = {
+                        val value = it.toIntOrNull()
+                        if (value in 1..30 || it.isBlank()) {
+                            frequencyCount = it
+                        }
+                    },
+                    label = { Text("How many times?") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(12.dp))
+
+                // Dropdown simulation (you can improve with real dropdown later)
+                OutlinedTextField(
+                    value = frequencyPeriod,
+                    onValueChange = { frequencyPeriod = it },
+                    label = { Text("Period (day/week/month/year)") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Reminder", style = MaterialTheme.typography.bodyLarge)
+                    Switch(
+                        checked = reminderEnabled,
+                        onCheckedChange = { reminderEnabled = it }
+                    )
+                }
+
+                if (reminderEnabled) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = reminderTime,
+                        onValueChange = { reminderTime = it },
+                        label = { Text("Reminder Time (e.g., 08:00 AM)") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
                 Spacer(Modifier.height(24.dp))
 
-                // Buttons row
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Cancel
                     OutlinedButton(
                         onClick = {
                             newHabitName = ""
+                            hardnessLevel = ""
+                            frequencyCount = ""
+                            frequencyPeriod = "day"
+                            reminderEnabled = false
+                            reminderTime = ""
                             scope.launch { sheetState.hide() }
                         },
                         modifier = Modifier.weight(1f)
@@ -239,16 +322,33 @@ fun MyHabitsWithModalSheet(
                         Text("Cancel")
                     }
 
-                    // Add
                     Button(
                         onClick = {
                             if (newHabitName.isNotBlank()) {
-                                onAddHabit(newHabitName.trim())
-                                newHabitName = ""
-                            }
-                            scope.launch {
+                                val frequency = if (frequencyCount.isNotBlank())
+                                    "$frequencyCount per $frequencyPeriod"
+                                else ""
 
-                                sheetState.hide()
+                                val habit = Habit(
+                                    id = System.currentTimeMillis().toString(),
+                                    title = newHabitName.trim(),
+                                    weeklyProgress = 0f,
+                                    isCompletedToday = false,
+                                    hardnessLevel = hardnessLevel.toIntOrNull() ?: 1,
+                                    frequency = frequency,
+                                    reminderEnabled = reminderEnabled,
+                                    reminderTime = if (reminderEnabled) reminderTime else null
+                                )
+
+                                onAddHabit(habit)
+
+                                newHabitName = ""
+                                hardnessLevel = ""
+                                frequencyCount = ""
+                                frequencyPeriod = "day"
+                                reminderEnabled = false
+                                reminderTime = ""
+                                scope.launch { sheetState.hide() }
                             }
                         },
                         modifier = Modifier.weight(1f)

@@ -23,8 +23,8 @@ class MyHabitsViewModal : ViewModel() {
     private fun loadStubData() {
         // populate some dummy habits & suggestions
         _habits.value = listOf(
-            Habit("1", "Morning Run", 0.3f, isCompletedToday = false),
-            Habit("2", "Read a Book", 0.6f, isCompletedToday = true)
+            Habit("1", "Morning Run", 0.3f, isCompletedToday = false,5),
+            Habit("2", "Read a Book", 0.6f, isCompletedToday = true,4)
         )
         _habitSuggestions.value = listOf(
             SmartSuggestion("s1", "Try a 5-minute journaling habit"),

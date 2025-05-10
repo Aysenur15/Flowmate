@@ -59,8 +59,13 @@ fun MyTasksScreen(
     val scope = rememberCoroutineScope()
     var newTaskTitle by remember { mutableStateOf("") }
     var newTaskDueTime by remember { mutableStateOf("") }
+    var hardnessLevel by remember { mutableStateOf("") }
+    var reminderEnabled by remember { mutableStateOf(false) }
+
 
     if (sheetState.isVisible) {
+        var reminderTime by remember { mutableStateOf("") }
+
         ModalBottomSheet(
             onDismissRequest = { scope.launch { sheetState.hide() } },
             sheetState = sheetState,
@@ -93,6 +98,52 @@ fun MyTasksScreen(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = hardnessLevel,
+                    onValueChange = {
+                        if (it.all { c -> c.isDigit() } && (it.toIntOrNull()
+                                ?: 0) in 1..5 || it.isBlank()) {
+                            hardnessLevel = it
+                        }
+                    },
+                    label = { Text("Hardness level (1-5)") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Reminder",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    androidx.compose.material3.Switch(
+                        checked = reminderEnabled,
+                        onCheckedChange = { reminderEnabled = it }
+                    )
+                }
+
+                if (reminderEnabled) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = reminderTime,
+                        onValueChange = { reminderTime = it },
+                        label = { Text("Reminder Time (e.g., 09:00 AM)") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
                 Spacer(Modifier.height(24.dp))
 
                 Row(
@@ -103,6 +154,8 @@ fun MyTasksScreen(
                         onClick = {
                             newTaskTitle = ""
                             newTaskDueTime = ""
+                            reminderEnabled = false
+                            reminderTime = ""
                             scope.launch { sheetState.hide() }
                         },
                         modifier = Modifier.weight(1f)
@@ -117,11 +170,16 @@ fun MyTasksScreen(
                                     id = System.currentTimeMillis().toString(),
                                     title = newTaskTitle.trim(),
                                     dueTime = newTaskDueTime.trim(),
-                                    isCompleted = false
+                                    isCompleted = false,
+                                    reminderEnabled = reminderEnabled,
+                                    reminderTime = if (reminderEnabled) reminderTime else null
                                 )
                                 onAddTask(newTask)
+
                                 newTaskTitle = ""
                                 newTaskDueTime = ""
+                                reminderEnabled = false
+                                reminderTime = ""
                             }
                             scope.launch { sheetState.hide() }
                         },
@@ -133,7 +191,6 @@ fun MyTasksScreen(
             }
         }
     }
-
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -171,7 +228,9 @@ fun MyTasksScreen(
                                 tint = if (task.isCompleted) DoneColor else PendingColor
                             )
                         }
+
                         Spacer(Modifier.width(16.dp))
+
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = task.title,
@@ -179,10 +238,18 @@ fun MyTasksScreen(
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = task.dueTime,
+                                text = "Due: ${task.dueTime}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
+                            if (task.reminderEnabled && !task.reminderTime.isNullOrBlank()) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "Reminder: ${task.reminderTime}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF4CAF50) // green-ish
+                                )
+                            }
                         }
                     }
                 }
