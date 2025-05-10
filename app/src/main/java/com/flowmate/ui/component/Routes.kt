@@ -16,4 +16,6 @@ sealed class MainRoute(val route: String) {
     data object Theme : MainRoute("theme")
     data object Achievements : MainRoute("achievements")
     data object Settings : MainRoute("settings")
+    data object EditCredentials : MainRoute("edit_credentials")
+
 }

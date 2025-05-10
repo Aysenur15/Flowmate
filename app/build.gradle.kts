@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.auth.ktx)
 
 
     testImplementation(libs.junit)

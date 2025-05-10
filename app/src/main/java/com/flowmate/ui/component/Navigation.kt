@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,16 +14,19 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.flowmate.ui.screen.CalendarScreen
 import com.flowmate.ui.screen.ChronometerScreen
+import com.flowmate.ui.screen.EditCredentialsScreen
 import com.flowmate.ui.screen.HomeScreen
 import com.flowmate.ui.screen.LoginScreen
 import com.flowmate.ui.screen.MyHabitsWithModalSheet
 import com.flowmate.ui.screen.MyTasksScreen
 import com.flowmate.ui.screen.ProfileScreen
 import com.flowmate.ui.screen.ReportsScreen
+import com.flowmate.ui.screen.SettingsScreen
 import com.flowmate.ui.screen.SignUpScreen
 import com.flowmate.viewmodel.AuthViewModel
 import com.flowmate.viewmodel.MyHabitsViewModal
 import com.flowmate.viewmodel.MyTasksViewModal
+import com.flowmate.viewmodel.SettingsViewModel
 
 @Composable
 fun FlowMateNavGraph(
@@ -82,6 +86,8 @@ private fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
+
+
     }
 }
 
@@ -96,7 +102,7 @@ private fun NavGraphBuilder.mainNavGraph(
     navigation(startDestination = MainRoute.Home.route, route = "main") {
 
         composable(MainRoute.Home.route) {
-            val userName by authViewModel.currentUserName.collectAsState()
+            val userName by authViewModel.currentUserName.collectAsState(initial = "")
             HomeScreen(
                 modifier = Modifier,
                 userName = userName,
@@ -172,7 +178,21 @@ private fun NavGraphBuilder.mainNavGraph(
             // TODO: Achievements screen logic
         }
         composable(MainRoute.Settings.route) {
-            // TODO: Settings screen logic
+                val settingsViewModel: SettingsViewModel = viewModel()
+                SettingsScreen(viewModel = settingsViewModel, onNavigateTo = { route ->
+                    navController.navigate(route.route) {
+                        popUpTo(MainRoute.Settings.route) { inclusive = true }
+                    }
+                })
+
+        }
+
+        composable(MainRoute.EditCredentials.route) {
+            EditCredentialsScreen(
+                onSaveSuccess = { /* Handle save success */ },
+                onError = { errorMessage -> /* Handle error */ }
+            )
         }
     }
 }
+
