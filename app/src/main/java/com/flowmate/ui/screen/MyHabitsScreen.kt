@@ -1,5 +1,6 @@
 package com.flowmate.ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,9 +57,10 @@ import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Switch
+import androidx.compose.material3.*
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.DropdownMenuItem
-import com.flowmate.viewmodel.MyHabitsViewModal
+
+
 
 
 // 3. The MyHabitsScreen composable
@@ -263,16 +265,47 @@ fun MyHabitsWithModalSheet(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // Dropdown simulation (you can improve with real dropdown later)
-                OutlinedTextField(
-                    value = frequencyPeriod,
-                    onValueChange = { frequencyPeriod = it },
-                    label = { Text("Period (day/week/month/year)") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ExposedDropdownMenuBox(
+                    expanded = periodDropdownExpanded,
+                    onExpandedChange = { periodDropdownExpanded = !periodDropdownExpanded }
+                ) {
+                    OutlinedTextField(
+                        readOnly = true,
+                        value = frequencyPeriod,
+                        onValueChange = {},
+                        label = { Text("Period") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = periodDropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
 
+                    ExposedDropdownMenu(
+                        expanded = periodDropdownExpanded,
+                        onDismissRequest = { periodDropdownExpanded = false }
+                    ) {
+                        periodOptions.forEach { period ->
+                            val isSelected = frequencyPeriod == period
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        period,
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                    )
+                                },
+                                onClick = {
+                                    frequencyPeriod = period
+                                    periodDropdownExpanded = false
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
+                                    )
+                            )
+                        }
+                    }
+                }
                 Spacer(Modifier.height(16.dp))
 
                 Row(
