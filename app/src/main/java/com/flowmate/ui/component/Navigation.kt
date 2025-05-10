@@ -15,22 +15,40 @@ import com.flowmate.ui.screen.CalendarScreen
 import com.flowmate.ui.screen.ChronometerScreen
 import com.flowmate.ui.screen.HomeScreen
 import com.flowmate.ui.screen.LoginScreen
-import com.flowmate.ui.screen.MyHabitsWithModalSheet
+import com.flowmate.ui.screen.MainFrame
+import com.flowmate.ui.screen.MyHabitScreen
 import com.flowmate.ui.screen.MyTasksScreen
-import com.flowmate.ui.screen.ProfileScreen
 import com.flowmate.ui.screen.ReportsScreen
 import com.flowmate.ui.screen.SignUpScreen
 import com.flowmate.viewmodel.AuthViewModel
-import com.flowmate.viewmodel.MyHabitsViewModal
-import com.flowmate.viewmodel.MyTasksViewModal
+
+// 1. Define your routes
+sealed class AuthRoute(val route: String) {
+    data object Login : AuthRoute("login")
+    data object SignUp : AuthRoute("signup")
+}
+
+sealed class MainRoute(val route: String) {
+    data object Home : MainRoute("home")
+    data object Habits : MainRoute("habits")
+    data object Tasks : MainRoute("tasks")
+    data object Calendar : MainRoute("calendar")
+    data object Chronometer : MainRoute("chronometer")
+    data object Reports : MainRoute("reports")
+    data object Profile : MainRoute("profile")
+    data object Theme : MainRoute("theme")
+    data object Achievements : MainRoute("achievements")
+    data object Settings : MainRoute("settings")
+}
 
 @Composable
 fun FlowMateNavGraph(
     authViewModel: AuthViewModel
 ) {
     val navController = rememberNavController()
-    val currentRoute = rememberCurrentRoute(navController)
+
     val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState(initial = false)
+    val userName by authViewModel.currentUserName.collectAsState(initial = "")
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
@@ -42,15 +60,15 @@ fun FlowMateNavGraph(
 
     if (isLoggedIn) {
         MainFrame(
+            userName = userName,
             onNavigateTo = { route -> navController.navigate(route.route) },
             onLogout = { authViewModel.signOut() },
-            currentDestination = currentRoute,
         ) {
             NavHost(
                 navController = navController,
                 startDestination = "main"
             ) {
-                mainNavGraph(navController)
+                mainNavGraph(navController, authViewModel)
             }
         }
     } else {
@@ -86,17 +104,13 @@ private fun NavGraphBuilder.authNavGraph(
 }
 
 private fun NavGraphBuilder.mainNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    authViewModel: AuthViewModel
 ) {
-    // Use the existing authViewModel instance to get tasks
-    val authViewModel = AuthViewModel()
-    val myTasksViewModal = MyTasksViewModal()
-    val myHabitViewModal = MyHabitsViewModal()
-
     navigation(startDestination = MainRoute.Home.route, route = "main") {
-
         composable(MainRoute.Home.route) {
-            val userName by authViewModel.currentUserName.collectAsState()
+            // 2️⃣ collect your flows here
+            val userName by authViewModel.currentUserName.collectAsState(initial = "")
             HomeScreen(
                 modifier = Modifier,
                 userName = userName,
@@ -108,38 +122,25 @@ private fun NavGraphBuilder.mainNavGraph(
             )
         }
         composable(MainRoute.Habits.route) {
-            val habits by myHabitViewModal.habits.collectAsState(initial = emptyList())
-            val suggestions by myHabitViewModal.habitSuggestions.collectAsState(initial = emptyList())
-
-            MyHabitsWithModalSheet(
+            val habits by authViewModel.habits.collectAsState(initial = emptyList())
+            val suggestions by authViewModel.habitSuggestions.collectAsState(initial = emptyList())
+            MyHabitScreen(
                 habits = habits,
                 suggestions = suggestions,
-                onToggleComplete = { habit ->
-                    myHabitViewModal.toggleHabitCompletion(habit)
-                },
-                onAddHabit = {
-                },
+                onToggleComplete = authViewModel::toggleHabitCompletion,
+                onAddHabit = { /*…*/ }
             )
         }
-
-
         composable(MainRoute.Tasks.route) {
-            val tasks by myTasksViewModal.tasks.collectAsState(initial = emptyList())
-            val suggestions by myTasksViewModal.tasks.collectAsState(initial = emptyList())
-
             MyTasksScreen(
-                tasks = tasks,
-                onToggleTask = { task ->
-                    myTasksViewModal.toggleTaskCompletion(task)
-                },
-                onAddTask = {
-                    // Handle adding a new task
-
-                    //navController.navigate(MainRoute.AddTask.route)
-                },
+                tasks = emptyList(), // Replace with actual task list
+                onAddTask = { /* Handle adding a new task */ },
+                onToggleTask = { taskId ->
+                    // Handle toggling task completion
+                    /**/
+                }
             )
         }
-
         composable(MainRoute.Calendar.route) {
             CalendarScreen()
         }
@@ -149,7 +150,10 @@ private fun NavGraphBuilder.mainNavGraph(
         composable(MainRoute.Reports.route) {
             ReportsScreen(
                 entries = emptyList(), // Replace with actual entries
-                onEntryClick = { entry -> /* Handle entry click */ },
+                onEntryClick = { entry ->
+                    // Handle entry click
+                    /**/
+                },
                 onRefresh = { /* Handle refresh */ },
                 weeklyProgress = 0f, // Replace with actual progress
                 yearlyProgress = 0f, // Replace with actual progress
@@ -157,22 +161,17 @@ private fun NavGraphBuilder.mainNavGraph(
             )
         }
         composable(MainRoute.Profile.route) {
-            ProfileScreen(
-                currentName = authViewModel.currentUserName.collectAsState().value,
-                onNameChange = { /* Handle name change */ },
-                onSaveName = { /* Handle save name */ },
-                onResetProgress = { /* Handle reset progress */ },
-                onExportData = { /* Handle export data */ }
-            )
+            //TODO
         }
         composable(MainRoute.Theme.route) {
-            // TODO: Theme settings screen logic
+            //TODO
         }
         composable(MainRoute.Achievements.route) {
-            // TODO: Achievements screen logic
+            //TODO
         }
         composable(MainRoute.Settings.route) {
-            // TODO: Settings screen logic
+            //TODO
         }
+        // Add more composable destinations as needed
     }
 }
