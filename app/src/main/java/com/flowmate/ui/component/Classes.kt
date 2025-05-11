@@ -1,5 +1,7 @@
 package com.flowmate.ui.component
 
+import java.time.DayOfWeek
+
 
 // 2. Data models
 data class Habit(
@@ -27,3 +29,11 @@ data class TaskItem(
     val reminderEnabled: Boolean=false,
     val reminderTime: String?=null,
 )
+data class WeeklyHabit(
+    val id: String,
+    val title: String,
+    val weekStatus: MutableMap<DayOfWeek, HabitStatus>
+)
+enum class HabitStatus {
+    DONE, MISSED, SKIPPED, NONE
+}

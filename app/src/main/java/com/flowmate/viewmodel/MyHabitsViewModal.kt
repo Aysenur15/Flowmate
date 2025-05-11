@@ -46,4 +46,8 @@ class MyHabitsViewModal : ViewModel() {
         }
         _habits.value = updated
     }
+    fun addHabit(habit: Habit) {
+        _habits.value = _habits.value + habit
+    }
+
 }

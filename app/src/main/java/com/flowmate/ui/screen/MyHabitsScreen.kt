@@ -59,8 +59,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.material3.Switch
 import androidx.compose.material3.*
 import androidx.compose.material3.ExposedDropdownMenuBox
-
-
+import androidx.navigation.NavController
 
 
 // 3. The MyHabitsScreen composable
@@ -70,13 +69,12 @@ fun MyHabitsScreen(
     habits: List<Habit>,
     suggestions: List<SmartSuggestion>,
     onToggleComplete: (habitId: String) -> Unit,
-    onAddHabit: () -> Unit
-
+    onAddHabit: () -> Unit,
+    navController: NavController
 ) {
-
     Scaffold(
         topBar = {
-            androidx.compose.material3.TopAppBar(
+            TopAppBar(
                 title = { Text("My Habits", style = MaterialTheme.typography.titleLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF4CAF50)),
                 actions = {
@@ -88,10 +86,7 @@ fun MyHabitsScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = {
-                    // Open the modal sheet
-                    onAddHabit()
-                },
+                onClick = { onAddHabit() },
                 icon = { Icon(Icons.Default.Add, contentDescription = "Add Habit") },
                 text = { Text("New") }
             )
@@ -102,7 +97,6 @@ fun MyHabitsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // AI suggestions strip
             if (suggestions.isNotEmpty()) {
                 Text(
                     text = "Suggestions for you",
@@ -131,7 +125,6 @@ fun MyHabitsScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Habits list
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -148,7 +141,6 @@ fun MyHabitsScreen(
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Progress circle
                             Box(contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator(
                                     progress = { habit.weeklyProgress },
@@ -163,14 +155,12 @@ fun MyHabitsScreen(
                                 )
                             }
                             Spacer(Modifier.width(16.dp))
-                            // Title
                             Text(
                                 text = habit.title,
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.weight(1f)
                             )
                             Spacer(Modifier.width(16.dp))
-                            // Tick button
                             IconButton(onClick = { onToggleComplete(habit.id) }) {
                                 val icon = if (habit.isCompletedToday)
                                     Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked
@@ -184,9 +174,21 @@ fun MyHabitsScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { navController.navigate("habitProgress") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text("View Progress")
+            }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -194,7 +196,8 @@ fun MyHabitsWithModalSheet(
     habits: List<Habit>,
     suggestions: List<SmartSuggestion>,
     onToggleComplete: (String) -> Unit,
-    onAddHabit: (Habit) -> Unit
+    onAddHabit: (Habit) -> Unit,
+    navController: NavController
 ) {
     // ✅ Correctly declared sheet state and scope
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -398,5 +401,7 @@ fun MyHabitsWithModalSheet(
         suggestions = suggestions,
         onToggleComplete = onToggleComplete,
         onAddHabit = { scope.launch { sheetState.show() } },
+        navController = navController // ✅ pass the actual instance
     )
+
 }

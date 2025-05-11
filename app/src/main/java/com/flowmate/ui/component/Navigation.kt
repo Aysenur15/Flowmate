@@ -27,6 +27,8 @@ import com.flowmate.viewmodel.AuthViewModel
 import com.flowmate.viewmodel.MyHabitsViewModal
 import com.flowmate.viewmodel.MyTasksViewModal
 import com.flowmate.viewmodel.SettingsViewModel
+import com.flowmate.ui.screen.HabitProgressScreen
+import com.flowmate.viewmodel.WeeklyHabitViewModel
 
 @Composable
 fun FlowMateNavGraph(
@@ -94,10 +96,10 @@ private fun NavGraphBuilder.authNavGraph(
 private fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController
 ) {
-    // Use the existing authViewModel instance to get tasks
     val authViewModel = AuthViewModel()
     val myTasksViewModal = MyTasksViewModal()
     val myHabitViewModal = MyHabitsViewModal()
+
 
     navigation(startDestination = MainRoute.Home.route, route = "main") {
 
@@ -113,6 +115,7 @@ private fun NavGraphBuilder.mainNavGraph(
                 }
             )
         }
+
         composable(MainRoute.Habits.route) {
             val habits by myHabitViewModal.habits.collectAsState(initial = emptyList())
             val suggestions by myHabitViewModal.habitSuggestions.collectAsState(initial = emptyList())
@@ -123,11 +126,17 @@ private fun NavGraphBuilder.mainNavGraph(
                 onToggleComplete = { habit ->
                     myHabitViewModal.toggleHabitCompletion(habit)
                 },
-                onAddHabit = {
+                onAddHabit = { habit ->
+                    myHabitViewModal.addHabit(habit)
                 },
+                navController = navController
             )
         }
 
+        composable("habitProgress") {
+            val weeklyHabitViewModel: WeeklyHabitViewModel = viewModel()
+            HabitProgressScreen(viewModel = weeklyHabitViewModel)
+        }
 
         composable(MainRoute.Tasks.route) {
             val tasks by myTasksViewModal.tasks.collectAsState(initial = emptyList())
@@ -138,59 +147,63 @@ private fun NavGraphBuilder.mainNavGraph(
                 onToggleTask = { task ->
                     myTasksViewModal.toggleTaskCompletion(task)
                 },
-                onAddTask = {
-                    // Handle adding a new task
-
-                    //navController.navigate(MainRoute.AddTask.route)
-                },
+                onAddTask = { /* Add task logic */ }
             )
         }
 
         composable(MainRoute.Calendar.route) {
             CalendarScreen()
         }
+
         composable(MainRoute.Chronometer.route) {
             ChronometerScreen()
         }
+
         composable(MainRoute.Reports.route) {
             ReportsScreen(
-                entries = emptyList(), // Replace with actual entries
-                onEntryClick = { entry -> /* Handle entry click */ },
+                entries = emptyList(),
+                onEntryClick = { /* Handle entry click */ },
                 onRefresh = { /* Handle refresh */ },
-                weeklyProgress = 0f, // Replace with actual progress
-                yearlyProgress = 0f, // Replace with actual progress
-                monthlyProgress = 0f // Replace with actual progress
+                weeklyProgress = 0f,
+                yearlyProgress = 0f,
+                monthlyProgress = 0f
             )
         }
+
         composable(MainRoute.Profile.route) {
             ProfileScreen(
                 currentName = authViewModel.currentUserName.collectAsState().value,
-                onNameChange = { /* Handle name change */ },
-                onSaveName = { /* Handle save name */ },
-                onResetProgress = { /* Handle reset progress */ },
-                onExportData = { /* Handle export data */ }
+                onNameChange = { },
+                onSaveName = { },
+                onResetProgress = { },
+                onExportData = { }
             )
         }
+
         composable(MainRoute.Theme.route) {
             // TODO: Theme settings screen logic
         }
+
         composable(MainRoute.Achievements.route) {
             // TODO: Achievements screen logic
         }
+
         composable(MainRoute.Settings.route) {
-                val settingsViewModel: SettingsViewModel = viewModel()
-                SettingsScreen(viewModel = settingsViewModel, onNavigateTo = { route ->
+            val settingsViewModel: SettingsViewModel = viewModel()
+            SettingsScreen(
+                viewModel = settingsViewModel,
+                onNavigateTo = { route ->
                     navController.navigate(route.route) {
                         popUpTo(MainRoute.Settings.route) { inclusive = true }
                     }
-                })
-
+                }
+            )
         }
 
         composable(MainRoute.EditCredentials.route) {
             EditCredentialsScreen(
-                onSaveSuccess = { /* Handle save success */ },
-                onError = { errorMessage -> /* Handle error */ }
+                onSaveSuccess = { },
+                onError = { }
             )
         }
     }
