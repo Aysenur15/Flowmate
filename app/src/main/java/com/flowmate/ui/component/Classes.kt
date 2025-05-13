@@ -35,5 +35,5 @@ data class WeeklyHabit(
     val weekStatus: MutableMap<DayOfWeek, HabitStatus>
 )
 enum class HabitStatus {
-    DONE, MISSED, SKIPPED, NONE
+    DONE, MISSED, SKIPPED, NONE // undone should be used only
 }

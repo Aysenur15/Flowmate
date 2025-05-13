@@ -29,6 +29,9 @@ import com.flowmate.viewmodel.MyTasksViewModal
 import com.flowmate.viewmodel.SettingsViewModel
 import com.flowmate.ui.screen.HabitProgressScreen
 import com.flowmate.viewmodel.WeeklyHabitViewModel
+import androidx.navigation.compose.composable
+import com.flowmate.ui.screen.WeeklyHabitReportScreen
+import com.flowmate.viewmodel.ReportsViewModel
 
 @Composable
 fun FlowMateNavGraph(
@@ -132,6 +135,10 @@ private fun NavGraphBuilder.mainNavGraph(
                 navController = navController
             )
         }
+        composable("weeklyHabitReport") {
+            val viewModel: ReportsViewModel = viewModel()
+            WeeklyHabitReportScreen(viewModel = viewModel)
+        }
 
         composable("habitProgress") {
             val weeklyHabitViewModel: WeeklyHabitViewModel = viewModel()
@@ -160,15 +167,18 @@ private fun NavGraphBuilder.mainNavGraph(
         }
 
         composable(MainRoute.Reports.route) {
+            val reportsViewModel: ReportsViewModel = viewModel()
             ReportsScreen(
-                entries = emptyList(),
-                onEntryClick = { /* Handle entry click */ },
-                onRefresh = { /* Handle refresh */ },
-                weeklyProgress = 0f,
-                yearlyProgress = 0f,
-                monthlyProgress = 0f
+                viewModel = reportsViewModel,
+                entries = emptyList(), // This is empty, but still should render the pie chart
+                onEntryClick = {},
+                onRefresh = {},
+                weeklyProgress = 0.7f,
+                monthlyProgress = 0.4f,
+                yearlyProgress = 0.9f
             )
         }
+
 
         composable(MainRoute.Profile.route) {
             ProfileScreen(
