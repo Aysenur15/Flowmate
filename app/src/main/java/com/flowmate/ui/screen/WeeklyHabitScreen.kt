@@ -91,13 +91,11 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
                         val icon = when (status) {
                             HabitStatus.DONE -> Icons.Default.Check
                             HabitStatus.SKIPPED -> Icons.Default.SentimentSatisfied
-                            HabitStatus.MISSED -> Icons.Default.Close
                             HabitStatus.NONE -> Icons.Default.RadioButtonUnchecked
                         }
                         val tint = when (status) {
                             HabitStatus.DONE -> Color(0xFF4CAF50)
                             HabitStatus.SKIPPED -> Color(0xFFFFC107)
-                            HabitStatus.MISSED -> Color.Red
                             HabitStatus.NONE -> Color.Gray
                         }
                         Icon(

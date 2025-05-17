@@ -1,6 +1,7 @@
 package com.flowmate.ui.component
 
 import java.time.DayOfWeek
+import java.time.LocalDate
 
 
 // 2. Data models
@@ -35,5 +36,15 @@ data class WeeklyHabit(
     val weekStatus: MutableMap<DayOfWeek, HabitStatus>
 )
 enum class HabitStatus {
-    DONE, MISSED, SKIPPED, NONE // undone should be used only
+    DONE, SKIPPED, NONE
 }
+data class MonthlyHabit(
+    val id: String,
+    val title: String,
+    val monthStatus: MutableMap<LocalDate, HabitStatus>
+)
+data class YearlyHabit(
+    val id: String,
+    val title: String,
+    val completedDays: MutableSet<LocalDate>
+)

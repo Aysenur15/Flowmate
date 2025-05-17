@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
@@ -15,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.flowmate.ui.screen.CalendarScreen
 import com.flowmate.ui.screen.ChronometerScreen
 import com.flowmate.ui.screen.EditCredentialsScreen
+import com.flowmate.ui.screen.HabitProgressScreen
 import com.flowmate.ui.screen.HomeScreen
 import com.flowmate.ui.screen.LoginScreen
 import com.flowmate.ui.screen.MyHabitsWithModalSheet
@@ -23,15 +25,15 @@ import com.flowmate.ui.screen.ProfileScreen
 import com.flowmate.ui.screen.ReportsScreen
 import com.flowmate.ui.screen.SettingsScreen
 import com.flowmate.ui.screen.SignUpScreen
+import com.flowmate.ui.screen.WeeklyHabitReportScreen
 import com.flowmate.viewmodel.AuthViewModel
+import com.flowmate.viewmodel.MonthlyHabitViewModel
 import com.flowmate.viewmodel.MyHabitsViewModal
 import com.flowmate.viewmodel.MyTasksViewModal
-import com.flowmate.viewmodel.SettingsViewModel
-import com.flowmate.ui.screen.HabitProgressScreen
-import com.flowmate.viewmodel.WeeklyHabitViewModel
-import androidx.navigation.compose.composable
-import com.flowmate.ui.screen.WeeklyHabitReportScreen
 import com.flowmate.viewmodel.ReportsViewModel
+import com.flowmate.viewmodel.SettingsViewModel
+import com.flowmate.viewmodel.WeeklyHabitViewModel
+import com.flowmate.viewmodel.YearlyHabitViewModel
 
 @Composable
 fun FlowMateNavGraph(
@@ -141,10 +143,17 @@ private fun NavGraphBuilder.mainNavGraph(
         }
 
         composable("habitProgress") {
-            val weeklyHabitViewModel: WeeklyHabitViewModel = viewModel()
-            HabitProgressScreen(viewModel = weeklyHabitViewModel)
-        }
+            val weeklyViewModel = remember { WeeklyHabitViewModel() }
+            val monthlyViewModel = remember { MonthlyHabitViewModel() }
+            val yearlyViewModel = remember { YearlyHabitViewModel() }
 
+            HabitProgressScreen(
+                weeklyViewModel = weeklyViewModel,
+                monthlyViewModel = monthlyViewModel,
+                yearlyViewModel = yearlyViewModel
+            )
+
+        }
         composable(MainRoute.Tasks.route) {
             val tasks by myTasksViewModal.tasks.collectAsState(initial = emptyList())
             val suggestions by myTasksViewModal.tasks.collectAsState(initial = emptyList())
