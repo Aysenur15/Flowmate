@@ -19,15 +19,18 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun WeeklyHabitPieChart(habitCompletionMap: Map<String, Int>) {
     val total = habitCompletionMap.values.sum().toFloat()
-    val colors = listOf(Color.Red, Color.Blue, Color.Green, Color.Magenta, Color.Yellow)
+    val colors = listOf(Color(0xFF4DB6AC),Color(0xFFB39DDB), Color(0xFFFFB74D))
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Start
     ) {
-        Box(modifier = Modifier.size(250.dp)) {
+        Box(
+            modifier = Modifier
+                .size(160.dp)
+        ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 var startAngle = 0f
                 val radius = size.minDimension / 2f
@@ -69,7 +72,7 @@ fun WeeklyHabitPieChart(habitCompletionMap: Map<String, Int>) {
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         habitCompletionMap.entries.forEachIndexed { index, entry ->
             Row(
