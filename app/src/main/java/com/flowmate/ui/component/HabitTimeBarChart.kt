@@ -67,7 +67,7 @@ fun HabitTimeBarChart(
                         DropdownMenuItem(
                             modifier = Modifier.background(
                                 if (isSelected)
-                                    Color(0xFF43A047).copy(alpha = 0.3f)
+                                    Color(0xFFFF9800).copy(alpha = 0.3f)
                                 else MaterialTheme.colorScheme.surfaceVariant
                             ),
                             text = { Text(range.name) },

@@ -19,17 +19,16 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun WeeklyHabitPieChart(habitCompletionMap: Map<String, Int>) {
     val total = habitCompletionMap.values.sum().toFloat()
-    val colors = listOf(Color(0xFF4DB6AC),Color(0xFFB39DDB), Color(0xFFFFB74D))
-
-    Column(
+    val colors = listOf(Color(0xFF4DB6AC), Color(0xFFB39DDB), Color(0xFFFFB74D))
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalAlignment = Alignment.Start
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(160.dp)
+            modifier = Modifier.size(160.dp) // Rounded, consistent size
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 var startAngle = 0f
@@ -37,7 +36,10 @@ fun WeeklyHabitPieChart(habitCompletionMap: Map<String, Int>) {
                 val padding = 16.dp.toPx()
                 val rect = Rect(
                     offset = Offset(padding, padding),
-                    size = size.copy(width = size.width - 2 * padding, height = size.height - 2 * padding)
+                    size = size.copy(
+                        width = size.width - 2 * padding,
+                        height = size.height - 2 * padding
+                    )
                 )
 
                 habitCompletionMap.entries.forEachIndexed { index, entry ->
@@ -52,8 +54,12 @@ fun WeeklyHabitPieChart(habitCompletionMap: Map<String, Int>) {
                     )
 
                     val angle = startAngle + sweepAngle / 2
-                    val labelX = center.x + radius / 2 * kotlin.math.cos(Math.toRadians(angle.toDouble())).toFloat()
-                    val labelY = center.y + radius / 2 * kotlin.math.sin(Math.toRadians(angle.toDouble())).toFloat()
+                    val labelX =
+                        center.x + radius / 2 * kotlin.math.cos(Math.toRadians(angle.toDouble()))
+                            .toFloat()
+                    val labelY =
+                        center.y + radius / 2 * kotlin.math.sin(Math.toRadians(angle.toDouble()))
+                            .toFloat()
                     drawIntoCanvas {
                         it.nativeCanvas.drawText(
                             "${(entry.value / total * 100).toInt()}%",
@@ -72,25 +78,29 @@ fun WeeklyHabitPieChart(habitCompletionMap: Map<String, Int>) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.width(24.dp))
 
-        habitCompletionMap.entries.forEachIndexed { index, entry ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 4.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(colors[index % colors.size])
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = entry.key,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            habitCompletionMap.entries.forEachIndexed { index, entry ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(color = colors[index % colors.size])
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = entry.key,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
     }
 }
+

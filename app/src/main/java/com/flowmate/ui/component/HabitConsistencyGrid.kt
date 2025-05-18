@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+
 @Composable
 fun HabitConsistencyGrid(habitData: Map<String, List<Boolean>>) {
     Column(
@@ -36,7 +37,7 @@ fun HabitConsistencyGrid(habitData: Map<String, List<Boolean>>) {
             ) {
                 Text(
                     text = habit,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     modifier = Modifier.width(48.dp)
                 )
                 Spacer(modifier = Modifier.width(2.dp))

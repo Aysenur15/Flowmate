@@ -4,24 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flowmate.ui.component.WeeklyHabitPieChart
-import com.flowmate.ui.component.HabitTimeBarChart
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowmate.ui.component.*
 import com.flowmate.viewmodel.ReportsViewModel
 import com.flowmate.viewmodel.TimerStatsViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.flowmate.ui.component.HabitConsistencyGrid
-import com.flowmate.ui.component.HabitDifficultyBreakdown
-import androidx.compose.ui.Alignment
-
 
 // 1. Model for a detailed report entry (could be a chart, table, etc.)
 data class ReportEntry(
@@ -47,11 +45,14 @@ fun ReportsScreen(
     val timeSegments by timerViewModel.timeSegments.collectAsState()
 
     Scaffold { padding ->
+        val scrollState = rememberScrollState()
         Column(
             Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
+
         ) {
             Spacer(Modifier.height(8.dp))
 
@@ -61,49 +62,10 @@ fun ReportsScreen(
                         WeeklyHabitPieChart(habitCompletionMap = habitData)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        HabitDifficultyBreakdown(
-                            difficultyData = mapOf(
-                                "Reading" to listOf(
-                                    "Mon" to Color(0xFFFFCC80), "Tue" to Color(0xFF81C784), "Wed" to Color(0xFF81C784),
-                                    "Thu" to Color(0xFF81C784), "Fri" to Color(0xFF81C784), "Sat" to Color(0xFF81C784), "Sun" to Color(0xFF81C784)
-                                ),
-                                "Meditation" to listOf(
-                                    "Mon" to Color(0xFFFFAB91), "Tue" to Color(0xFF4DB6AC), "Wed" to Color(0xFF4DB6AC),
-                                    "Thu" to Color(0xFF4DB6AC), "Fri" to Color(0xFF4DB6AC), "Sat" to Color(0xFF4DB6AC), "Sun" to Color(0xFF4DB6AC)
-                                ),
-                                "New Habit" to List(7) { "" to Color(0xFFB39DDB) }
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(start = 64.dp)
-                        ) {
-                            listOf(
-                                "Easy" to Color(0xFFFFCC80),
-                                "Medium" to Color(0xFFFFAB91),
-                                "Hard" to Color(0xFF4DB6AC),
-                                "Completed" to Color(0xFF81C784),
-                                "Planned" to Color(0xFFB39DDB)
-                            ).forEach { (label, color) ->
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .background(color, shape = RoundedCornerShape(2.dp))
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(text = label, fontSize = 11.sp)
-                                }
-                            }
-                        }
-                    }
                 }
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
-            // Add the Habit Time Bar Chart here
             HabitTimeBarChart(
                 segments = timeSegments,
                 selectedRange = selectedRange,
@@ -115,7 +77,10 @@ fun ReportsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.Start
+                ) {
                     HabitConsistencyGrid(
                         habitData = mapOf(
                             "Exercise" to listOf(true, false, true, true, false),
@@ -123,42 +88,93 @@ fun ReportsScreen(
                             "Meditation" to listOf(false, false, true, true, false)
                         )
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    val (quote, author) = getTodayQuote()
+                    DailyMessageCard(quote = quote, author = author)
                 }
 
                 Spacer(modifier = Modifier.width(24.dp))
 
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    HabitDifficultyBreakdown(
+                        difficultyData = mapOf(
+                            "Reading" to listOf(
+                                "Mon" to Color(0xFFFFCC80), "Tue" to Color(0xFF81C784), "Wed" to Color(0xFF81C784),
+                                "Thu" to Color(0xFF81C784), "Fri" to Color(0xFF81C784), "Sat" to Color(0xFF81C784), "Sun" to Color(0xFF81C784)
+                            ),
+                            "Meditation" to listOf(
+                                "Mon" to Color(0xFFFFAB91), "Tue" to Color(0xFF4DB6AC), "Wed" to Color(0xFF4DB6AC),
+                                "Thu" to Color(0xFF4DB6AC), "Fri" to Color(0xFF4DB6AC), "Sat" to Color(0xFF4DB6AC), "Sun" to Color(0xFF4DB6AC)
+                            ),
+                            "New Habit" to List(7) { "" to Color(0xFFB39DDB) }
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            listOf(
+                                "Easy" to Color(0xFFFFCC80),
+                                "Medium" to Color(0xFFFFAB91),
+                                "Hard" to Color(0xFF4DB6AC)
+                            ).forEach { (label, color) ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(color, shape = RoundedCornerShape(2.dp))
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(text = label, fontSize = 10.sp)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    StyledAiInsights(
+                        insights = listOf(
+                            AiSuggestion("🌞", "Best Time", "You are most productive in the morning."),
+                            AiSuggestion("🧠", "Focus Strategy", "Try scheduling harder habits in the afternoon."),
+                            AiSuggestion("🎉", "Streak Tracker", "You've built a 10-day streak!")
+                        )
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-
-                // 4 detailed entries (e.g. pie charts, line charts, tables…)
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(entries) { entry ->
-                        Card(
-                            onClick = { onEntryClick(entry) },
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                Text(entry.title, style = MaterialTheme.typography.titleMedium)
-                                Spacer(Modifier.height(4.dp))
-                                Text(entry.description, style = MaterialTheme.typography.bodyMedium)
-                                // Placeholder for future charts
-                                Spacer(Modifier.height(8.dp))
-                                Box(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(120.dp)
-                                        .background(Color(0xFFE0E0E0), RoundedCornerShape(8.dp)),
-                                )
-                            }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                entries.forEach { entry ->
+                    Card(
+                        onClick = { onEntryClick(entry) },
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(entry.title, style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.height(4.dp))
+                            Text(entry.description, style = MaterialTheme.typography.bodyMedium)
+                            Spacer(Modifier.height(8.dp))
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp)
+                                    .background(Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
+                            )
                         }
                     }
                 }
             }
         }
     }
+}

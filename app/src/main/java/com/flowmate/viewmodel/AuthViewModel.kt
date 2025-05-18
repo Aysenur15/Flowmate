@@ -15,7 +15,7 @@ class AuthViewModel : ViewModel() {
 
     // for greeting on HomeScreen
     private val _currentUserName = MutableStateFlow("")
-    val currentUserName: StateFlow<String> = _currentUserName.asStateFlow()
+    val currentUserName: StateFlow<String> = _currentUserName
 
     fun signIn(username: String, password: String) {
         viewModelScope.launch {
@@ -44,4 +44,5 @@ class AuthViewModel : ViewModel() {
             /*_habits.value = emptyList()*/
         }
     }
+
 }

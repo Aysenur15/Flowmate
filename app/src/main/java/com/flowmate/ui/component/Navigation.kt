@@ -112,7 +112,6 @@ private fun NavGraphBuilder.mainNavGraph(
             val userName by authViewModel.currentUserName.collectAsState(initial = "")
             HomeScreen(
                 modifier = Modifier,
-                userName = userName,
                 onNavigateTo = { route ->
                     navController.navigate(route.route) {
                         popUpTo(MainRoute.Home.route) { inclusive = true }

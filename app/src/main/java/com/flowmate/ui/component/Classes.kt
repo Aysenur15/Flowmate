@@ -48,3 +48,10 @@ data class YearlyHabit(
     val title: String,
     val completedDays: MutableSet<LocalDate>
 )
+data class AiSuggestion(
+    val icon: String,
+    val title: String,
+    val message: String
+)
+
+
