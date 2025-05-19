@@ -10,50 +10,66 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun HabitConsistencyGrid(habitData: Map<String, List<Boolean>>) {
+fun HabitConsistencyGrid(habitData: List<Pair<String, List<Boolean>>>) {
+    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
     Column(
-        modifier = Modifier
-            .wrapContentHeight()
-            .width(160.dp),
-        horizontalAlignment = Alignment.Start
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text(
             text = "Habit Consistency",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 4.dp)
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+            color = Color(0xFF333333),
+            modifier = Modifier
+                .padding(bottom = 8.dp)
+                .align(Alignment.Start)
         )
 
-        habitData.forEach { (habit, days) ->
+        Spacer(modifier = Modifier.height(6.dp))
+
+        habitData.forEach { (habitName, weekData) ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 2.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = habit,
-                    fontSize = 11.sp,
-                    modifier = Modifier.width(48.dp)
+                    text = habitName,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFFFF5722),
+                    modifier = Modifier.width(72.dp)
                 )
-                Spacer(modifier = Modifier.width(2.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    days.forEach { isCompleted ->
+
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    weekData.forEach { isCompleted ->
                         Box(
-                        modifier = Modifier
-                            .size(16.dp)
-                            .background(
-                                color = if (isCompleted) Color(0xFFFF5722) else Color.LightGray,
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                    )
+                            modifier = Modifier
+                                .size(22.dp)
+                                .background(
+                                    color = if (isCompleted) Color(0xFFFF7043) else Color.LightGray,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                        )
                     }
                 }
             }
         }
     }
 }
+

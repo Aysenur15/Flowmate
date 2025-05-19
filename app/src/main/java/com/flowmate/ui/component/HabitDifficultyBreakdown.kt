@@ -1,73 +1,109 @@
 package com.flowmate.ui.component
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HabitDifficultyBreakdown(difficultyData: Map<String, List<Pair<String, Color>>>) {
+fun HabitDifficultyBreakdown() {
+    val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val dummyData = mapOf(
+        "Mon" to Triple(2, 1, 3),
+        "Tue" to Triple(1, 2, 2),
+        "Wed" to Triple(3, 0, 1),
+        "Thu" to Triple(2, 2, 2),
+        "Fri" to Triple(1, 1, 3),
+        "Sat" to Triple(0, 2, 2),
+        "Sun" to Triple(2, 1, 1)
+    )
+
+    val EasyColor = Color(0xFFE7C293)
+    val MediumColor = Color(0xFFFFAB91)
+    val HardColor = Color(0xFF4DB6AC)
+    val maxBarHeight = 100.dp
+
     Column(
         modifier = Modifier
-            .wrapContentHeight()
-            .width(180.dp),
-        horizontalAlignment = Alignment.Start
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Text(
-            text = "Difficulty Breakdown",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-
-        // Horizontal chart per day
-        val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-        val barWidth = 24.dp
-        val barSpacing = 8.dp
-        val habitNames = difficultyData.keys.toList() + "New Habit"
-
+        // Bar chart
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
+                .height(maxBarHeight),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.Bottom
         ) {
-            days.forEachIndexed { dayIndex, day ->
+            dayLabels.forEach { day ->
+                val (easy, medium, hard) = dummyData[day] ?: Triple(0, 0, 0)
+                val total = (easy + medium + hard).coerceAtLeast(1)
+                val unitHeight = maxBarHeight.value / total
+
                 Column(
-                    modifier = Modifier
-                        .padding(end = barSpacing)
-                        .height(80.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.fillMaxHeight()
                 ) {
-                    Canvas(modifier = Modifier
-                        .width(barWidth)
-                        .height(60.dp)) {
-                        var currentTop = size.height
-                        for (habit in habitNames.reversed()) {
-                            val color = difficultyData[habit]?.getOrNull(dayIndex)?.second ?: Color.LightGray
-                            val blockHeight = size.height / habitNames.size
-                            currentTop -= blockHeight
-                            drawRect(
-                                color = color,
-                                topLeft = androidx.compose.ui.geometry.Offset(0f, currentTop),
-                                size = androidx.compose.ui.geometry.Size(size.width, blockHeight)
-                            )
-                        }
-                    }
+                    Box(
+                        modifier = Modifier
+                            .height((hard * unitHeight).dp)
+                            .width(20.dp)
+                            .background(HardColor)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .height((medium * unitHeight).dp)
+                            .width(20.dp)
+                            .background(MediumColor)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .height((easy * unitHeight).dp)
+                            .width(20.dp)
+                            .background(EasyColor)
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(day, fontSize = 12.sp)
+                    Text(text = day, fontSize = 12.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Single correct legend
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)
+        ) {
+            listOf(
+                "Easy" to EasyColor,
+                "Medium" to MediumColor,
+                "Hard" to HardColor
+            ).forEach { (label, color) ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(14.dp)
+                            .background(color, RoundedCornerShape(3.dp))
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = label, fontSize = 14.sp)
                 }
             }
         }
     }
 }
+

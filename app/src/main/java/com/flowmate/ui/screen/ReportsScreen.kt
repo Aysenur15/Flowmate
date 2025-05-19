@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,67 +79,40 @@ fun ReportsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    HabitConsistencyGrid(
-                        habitData = mapOf(
-                            "Exercise" to listOf(true, false, true, true, false),
-                            "Reading" to listOf(true, true, true, true, true),
-                            "Meditation" to listOf(false, false, true, true, false)
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    val (quote, author) = getTodayQuote()
-                    DailyMessageCard(quote = quote, author = author)
-                }
-
-                Spacer(modifier = Modifier.width(24.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    HabitDifficultyBreakdown(
-                        difficultyData = mapOf(
-                            "Reading" to listOf(
-                                "Mon" to Color(0xFFFFCC80), "Tue" to Color(0xFF81C784), "Wed" to Color(0xFF81C784),
-                                "Thu" to Color(0xFF81C784), "Fri" to Color(0xFF81C784), "Sat" to Color(0xFF81C784), "Sun" to Color(0xFF81C784)
-                            ),
-                            "Meditation" to listOf(
-                                "Mon" to Color(0xFFFFAB91), "Tue" to Color(0xFF4DB6AC), "Wed" to Color(0xFF4DB6AC),
-                                "Thu" to Color(0xFF4DB6AC), "Fri" to Color(0xFF4DB6AC), "Sat" to Color(0xFF4DB6AC), "Sun" to Color(0xFF4DB6AC)
-                            ),
-                            "New Habit" to List(7) { "" to Color(0xFFB39DDB) }
+                    HabitConsistencyGrid(
+                        habitData = listOf(
+                            "Exercise" to listOf(true, false, true, true, false, false, false),
+                            "Reading" to listOf(true, true, true, true, true, true, true),
+                            "Meditation" to listOf(false, false, true, true, false, false, false)
                         )
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Difficulty Breakdown",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+                    HabitDifficultyBreakdown()
+
+
                     Spacer(modifier = Modifier.height(8.dp))
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            listOf(
-                                "Easy" to Color(0xFFFFCC80),
-                                "Medium" to Color(0xFFFFAB91),
-                                "Hard" to Color(0xFF4DB6AC)
-                            ).forEach { (label, color) ->
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .background(color, shape = RoundedCornerShape(2.dp))
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = label, fontSize = 10.sp)
-                                }
-                            }
-                        }
 
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                    }
                     Spacer(modifier = Modifier.height(24.dp))
+
+                    DailyMessageCard(quote = getTodayQuote().first, author = getTodayQuote().second)
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     StyledAiInsights(
                         insights = listOf(
