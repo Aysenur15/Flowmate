@@ -49,6 +49,7 @@ data class YearlyHabit(
     val title: String,
     val completedDays: MutableSet<LocalDate>
 )
+
 data class AuthState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -56,3 +57,12 @@ data class AuthState(
     val currentUser: UserEntity? = null,
     val userName: String? = null
 )
+
+data class AiSuggestion(
+    val icon: String,
+    val title: String,
+    val message: String
+)
+
+
+

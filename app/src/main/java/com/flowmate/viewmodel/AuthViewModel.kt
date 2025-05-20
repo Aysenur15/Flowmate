@@ -16,7 +16,13 @@ class AuthViewModel(
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
+
+    // for greeting on HomeScreen
+    private val _currentUserName = MutableStateFlow("")
+    val currentUserName: StateFlow<String> = _currentUserName
+
     fun signUp(name: String, email: String, username: String, password: String) {
+
         viewModelScope.launch {
             _authState.value = AuthState(isLoading = true)
 
@@ -48,4 +54,6 @@ class AuthViewModel(
         authRepository.signOut()
         _authState.value = AuthState()
     }
+
 }
+

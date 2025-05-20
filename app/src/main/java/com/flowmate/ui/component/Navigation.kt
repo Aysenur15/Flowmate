@@ -163,7 +163,6 @@ private fun NavGraphBuilder.mainNavGraph(
 
             HomeScreen(
                 modifier = Modifier,
-                userName = userName,
                 onNavigateTo = { route ->
                     navController.navigate(route.route) {
                         popUpTo(MainRoute.Home.route) { inclusive = true }
