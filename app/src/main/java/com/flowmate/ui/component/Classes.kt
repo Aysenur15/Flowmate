@@ -1,5 +1,6 @@
 package com.flowmate.ui.component
 
+import com.flowmate.data.UserEntity
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -48,10 +49,20 @@ data class YearlyHabit(
     val title: String,
     val completedDays: MutableSet<LocalDate>
 )
+
+data class AuthState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val isAuthenticated: Boolean = false,
+    val currentUser: UserEntity? = null,
+    val userName: String? = null
+)
+
 data class AiSuggestion(
     val icon: String,
     val title: String,
     val message: String
 )
+
 
 

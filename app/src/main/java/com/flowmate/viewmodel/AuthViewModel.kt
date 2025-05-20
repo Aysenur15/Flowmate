@@ -2,47 +2,58 @@ package com.flowmate.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowmate.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.flowmate.ui.component.AuthState
+import kotlinx.coroutines.flow.asStateFlow
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
-    // outside-app vs inside-app flag
-    private val _isUserLoggedIn = MutableStateFlow(false)
-    val isUserLoggedIn: StateFlow<Boolean> = _isUserLoggedIn.asStateFlow()
+    private val _authState = MutableStateFlow(AuthState())
+    val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
 
     // for greeting on HomeScreen
     private val _currentUserName = MutableStateFlow("")
     val currentUserName: StateFlow<String> = _currentUserName
 
-    fun signIn(username: String, password: String) {
+    fun signUp(name: String, email: String, username: String, password: String) {
+
         viewModelScope.launch {
-            // TODO: call your real auth repo
-            if (username.isNotBlank() && password.isNotBlank()) {
-                _currentUserName.value = username
-                _isUserLoggedIn.value = true
-                /*loadStubData()*/
+            _authState.value = AuthState(isLoading = true)
+
+            val result = authRepository.registerUser(name, email, username, password)
+
+            result.onSuccess {
+                _authState.value = AuthState(isAuthenticated = true, userName = it.username)
+            }.onFailure {
+                _authState.value = AuthState(errorMessage = it.message)
             }
         }
     }
 
-    fun signUp(name: String, email: String, username: String, password: String) {
+    fun signIn(email: String, password: String) {
         viewModelScope.launch {
-            // TODO: real sign-up logic
-            _currentUserName.value = name
-            _isUserLoggedIn.value = true
-            /*loadStubData()*/
+            _authState.value = AuthState(isLoading = true)
+
+            val result = authRepository.loginUser(email, password)
+
+            result.onSuccess {
+                _authState.value = AuthState(isAuthenticated = true, userName = it.username)
+            }.onFailure {
+                _authState.value = AuthState(errorMessage = it.message)
+            }
         }
     }
 
     fun signOut() {
-        viewModelScope.launch {
-            _isUserLoggedIn.value = false
-            _currentUserName.value = ""
-            /*_habits.value = emptyList()*/
-        }
+        authRepository.signOut()
+        _authState.value = AuthState()
     }
 
 }
+
