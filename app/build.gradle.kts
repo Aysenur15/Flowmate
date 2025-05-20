@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android") version "2.44" apply false
+    id("com.google.gms.google-services")
+    kotlin("kapt")
 }
 
 android {
@@ -51,11 +53,18 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.espresso.core)
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation("com.google.firebase:firebase-analytics")
 
     implementation(libs.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.androidx.room.common.jvm)
+    implementation(libs.androidx.room.runtime.android)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.compose.foundation)
 
 
     testImplementation(libs.junit)
@@ -65,4 +74,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
+
+
 }
+

@@ -1,11 +1,11 @@
 package com.flowmate.ui.component
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -13,6 +13,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.flowmate.FlowMateApp.Companion.database
+import com.flowmate.repository.AuthRepository
 import com.flowmate.ui.screen.CalendarScreen
 import com.flowmate.ui.screen.ChronometerScreen
 import com.flowmate.ui.screen.EditCredentialsScreen
@@ -34,15 +36,44 @@ import com.flowmate.viewmodel.ReportsViewModel
 import com.flowmate.viewmodel.SettingsViewModel
 import com.flowmate.viewmodel.WeeklyHabitViewModel
 import com.flowmate.viewmodel.YearlyHabitViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun FlowMateNavGraph(
-    authViewModel: AuthViewModel
-) {
+fun FlowMateNavGraph() {
     val navController = rememberNavController()
-    val currentRoute = rememberCurrentRoute(navController)
-    val isLoggedIn by authViewModel.isUserLoggedIn.collectAsState(initial = false)
+    val context = LocalContext.current
+    // Room DB oluştur
+    val repository = AuthRepository(
+        userDao = database.userDao(),
+        auth = FirebaseAuth.getInstance(),
+        firestore = FirebaseFirestore.getInstance()
+    )
 
+    // ViewModel elle oluşturuluyor (manuel DI)
+    val authViewModel = AuthViewModel(repository)
+/*
+    val db = remember {
+        Room.databaseBuilder(
+            context,
+            FlowMateDatabase::class.java,
+            "flowmate.db"
+        ).build()
+    }
+
+    val authRepository = remember {
+        AuthRepository(
+            userDao = db.userDao(),
+            auth = FirebaseAuth.getInstance(),
+            firestore = FirebaseFirestore.getInstance()
+        )
+    }
+*/
+
+    val authState by authViewModel.authState.collectAsState()
+    val isLoggedIn = authState.isAuthenticated
+
+/*
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
             navController.navigate("auth") {
@@ -55,13 +86,34 @@ fun FlowMateNavGraph(
         MainFrame(
             onNavigateTo = { route -> navController.navigate(route.route) },
             onLogout = { authViewModel.signOut() },
-            currentDestination = currentRoute,
+            currentDestination = rememberCurrentRoute(navController)
         ) {
             NavHost(
                 navController = navController,
                 startDestination = "main"
             ) {
-                mainNavGraph(navController)
+                mainNavGraph(navController, authViewModel)
+            }
+        }
+    } else {
+        NavHost(
+            navController = navController,
+            startDestination = "auth"
+        ) {
+            authNavGraph(navController, authViewModel)
+        }
+    }*/
+    if (isLoggedIn) {
+        MainFrame(
+            onNavigateTo = { route -> navController.navigate(route.route) },
+            onLogout = { authViewModel.signOut() },
+            currentDestination = rememberCurrentRoute(navController)
+        ) {
+            NavHost(
+                navController = navController,
+                startDestination = "main"
+            ) {
+                mainNavGraph(navController, authViewModel)
             }
         }
     } else {
@@ -93,23 +145,22 @@ private fun NavGraphBuilder.authNavGraph(
                 }
             )
         }
-
-
     }
 }
 
 private fun NavGraphBuilder.mainNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    authViewModel: AuthViewModel
 ) {
-    val authViewModel = AuthViewModel()
     val myTasksViewModal = MyTasksViewModal()
     val myHabitViewModal = MyHabitsViewModal()
-
 
     navigation(startDestination = MainRoute.Home.route, route = "main") {
 
         composable(MainRoute.Home.route) {
-            val userName by authViewModel.currentUserName.collectAsState(initial = "")
+            val authState by authViewModel.authState.collectAsState()
+            val userName = authState.userName ?: ""
+
             HomeScreen(
                 modifier = Modifier,
                 userName = userName,
@@ -137,6 +188,7 @@ private fun NavGraphBuilder.mainNavGraph(
                 navController = navController
             )
         }
+
         composable("weeklyHabitReport") {
             val viewModel: ReportsViewModel = viewModel()
             WeeklyHabitReportScreen(viewModel = viewModel)
@@ -152,8 +204,8 @@ private fun NavGraphBuilder.mainNavGraph(
                 monthlyViewModel = monthlyViewModel,
                 yearlyViewModel = yearlyViewModel
             )
-
         }
+
         composable(MainRoute.Tasks.route) {
             val tasks by myTasksViewModal.tasks.collectAsState(initial = emptyList())
             val suggestions by myTasksViewModal.tasks.collectAsState(initial = emptyList())
@@ -179,7 +231,7 @@ private fun NavGraphBuilder.mainNavGraph(
             val reportsViewModel: ReportsViewModel = viewModel()
             ReportsScreen(
                 viewModel = reportsViewModel,
-                entries = emptyList(), // This is empty, but still should render the pie chart
+                entries = emptyList(),
                 onEntryClick = {},
                 onRefresh = {},
                 weeklyProgress = 0.7f,
@@ -188,23 +240,14 @@ private fun NavGraphBuilder.mainNavGraph(
             )
         }
 
-
         composable(MainRoute.Profile.route) {
             ProfileScreen(
-                currentName = authViewModel.currentUserName.collectAsState().value,
+                currentName = authViewModel.authState.collectAsState().value.userName ?: "",
                 onNameChange = { },
                 onSaveName = { },
                 onResetProgress = { },
                 onExportData = { }
             )
-        }
-
-        composable(MainRoute.Theme.route) {
-            // TODO: Theme settings screen logic
-        }
-
-        composable(MainRoute.Achievements.route) {
-            // TODO: Achievements screen logic
         }
 
         composable(MainRoute.Settings.route) {
@@ -227,4 +270,3 @@ private fun NavGraphBuilder.mainNavGraph(
         }
     }
 }
-

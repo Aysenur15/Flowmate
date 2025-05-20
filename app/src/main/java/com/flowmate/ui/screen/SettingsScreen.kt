@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -147,9 +147,9 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
         Spacer(modifier = Modifier.height(24.dp))
 
         /*** 10. About App ***/
-        Divider()
+        HorizontalDivider()
         Text("📱 FlowMate v$versionName", modifier = Modifier.padding(top = 16.dp))
-        Text("Developer: Rolling Cat Software")
+        Text("Developer: FlowMate Software Team")
     }
 }
 
