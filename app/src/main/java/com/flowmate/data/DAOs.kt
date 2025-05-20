@@ -50,16 +50,17 @@ interface TaskDao {
 
 @Dao
 interface UserDao {
-
-    //constructor
-
-
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: UserEntity)
 
     @Query("SELECT * FROM users WHERE userId = :userId")
     suspend fun getUserById(userId: String): UserEntity?
+
+    @Query("SELECT * FROM users WHERE email = :email")
+    suspend fun getUserByEmail(email: String): UserEntity?
+
+    @Query("SELECT * FROM users WHERE username = :username")
+    suspend fun getUserByUsername(username: String): UserEntity?
 
     @Update
     suspend fun updateUser(user: UserEntity)
