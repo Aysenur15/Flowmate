@@ -44,7 +44,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 fun FlowMateNavGraph() {
     val navController = rememberNavController()
 
-    // Tek bir AuthRepository ve AuthViewModel instance'ı oluşturuluyor.
     val repository = remember {
         AuthRepository(
             userDao = database.userDao(),
@@ -57,37 +56,45 @@ fun FlowMateNavGraph() {
     val user by authViewModel.user.collectAsState()
     val error by authViewModel.error.collectAsState()
     val loading by authViewModel.loading.collectAsState()
-
     val isLoggedIn = user != null
 
-    // Navigation guard – login/logout yönlendirmesi
+    // Navigation guard
     LaunchedEffect(isLoggedIn) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
-        android.util.Log.d("FlowMateNavGraph", "Current route: $currentRoute, isLoggedIn: $isLoggedIn")
-        if (isLoggedIn) {
-            if (currentRoute != "main") {
-                navController.navigate("main") {
-                    popUpTo("auth") { inclusive = true }
-                    launchSingleTop = true
-                }
+        if (isLoggedIn && currentRoute?.startsWith("auth") == true) {
+            navController.navigate("main") {
+                popUpTo("auth") { inclusive = true }
+                launchSingleTop = true
             }
-        } else {
-            if (currentRoute != "auth") {
-                navController.navigate("auth") {
-                    popUpTo("main") { inclusive = true }
-                    launchSingleTop = true
-                }
+        } else if (!isLoggedIn && currentRoute?.startsWith("main") == true) {
+            navController.navigate("auth") {
+                popUpTo("main") { inclusive = true }
+                launchSingleTop = true
             }
         }
     }
 
-    // Navigation graph – ana yapı
-    NavHost(
-        navController = navController,
-        startDestination = if (isLoggedIn) "main" else "auth"
-    ) {
-        mainNavGraph(navController, authViewModel, user)
-        authNavGraph(navController, authViewModel, loading, error)
+    // UI Layer
+    if (isLoggedIn) {
+        MainFrame(
+            onNavigateTo = { route -> navController.navigate(route.route) },
+            onLogout = { authViewModel.signOut() },
+            currentDestination = navController.currentBackStackEntry?.destination?.route ?: ""
+        ) {
+            NavHost(
+                navController = navController,
+                startDestination = "main"
+            ) {
+                mainNavGraph(navController, authViewModel, user)
+            }
+        }
+    } else {
+        NavHost(
+            navController = navController,
+            startDestination = "auth"
+        ) {
+            authNavGraph(navController, authViewModel, loading, error)
+        }
     }
 }
 
