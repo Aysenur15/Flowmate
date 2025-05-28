@@ -9,8 +9,7 @@ data class UserEntity(
     val username: String,
     val email: String,
     val themePreference: String,
-    val createdAt: Long,
-    val passwordHash: String
+    val createdAt: Long
 )
 
 @Entity(tableName = "habits")

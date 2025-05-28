@@ -46,7 +46,9 @@ import com.flowmate.ui.theme.TextFieldShape
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     onSignUp: (name: String, email: String, username: String, password: String) -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    loading: Boolean,
+    error: String?
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
@@ -174,6 +176,38 @@ fun SignUpScreen(
                 Text("Sign up", style = MaterialTheme.typography.titleMedium)
             }
         }
+
+        if (loading){
+            // Show loading indicator
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
+            }
+        }
+        if( error != null) {
+            // Show error message
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.Red
+                )
+            }
+        }
+
         // Bottom "Sign up" link
         OutlinedButton(
             onClick = onNavigateToLogin,

@@ -1,7 +1,13 @@
 package com.flowmate.ui.screen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -21,16 +27,16 @@ import com.flowmate.ui.component.MainRoute
 import com.flowmate.ui.component.getTodayQuote
 import com.flowmate.ui.theme.ButtonShape
 import com.flowmate.viewmodel.AuthViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    onNavigateTo: (MainRoute) -> Unit
+    onNavigateTo: (MainRoute) -> Unit,
+    viewModel: AuthViewModel
 
 ) {
-    val viewModel: AuthViewModel = viewModel()
-    val userName by viewModel.currentUserName.collectAsState(initial = "User")
+
+    val userName by viewModel.currentUserName.collectAsState()
 
     Column(
         modifier = modifier

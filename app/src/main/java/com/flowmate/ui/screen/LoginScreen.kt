@@ -49,12 +49,16 @@ import com.flowmate.ui.theme.TextFieldShape
 fun LoginScreen(
     modifier: Modifier = Modifier,
     onLogin: (String, String) -> Unit,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    loading: Boolean,
+    error: String?
+
 ) {
     // UI state
     var username by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    val isFormValid = username.isNotBlank() && password.isNotBlank()
+    val isFormValid = email.isNotBlank() && password.isNotBlank()
 
     Box(
         modifier
@@ -80,17 +84,17 @@ fun LoginScreen(
 
             // Username / Email field
             Text(
-                text = "UserName / Email",
+                text = "Email",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .align(Alignment.Start)
                     .padding(bottom = 8.dp)
             )
             TextField(
-                value = username,
-                onValueChange = { username = it },
+                value = email,
+                onValueChange = { email = it },
                 singleLine = true,
-                placeholder = { Text("Enter username or email") },
+                placeholder = { Text("Enter your email") },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Peach,
@@ -138,7 +142,7 @@ fun LoginScreen(
 
             // Sign in button
             Button(
-                onClick = { if (isFormValid) onLogin(username.trim(), password) },
+                onClick = { if (isFormValid) onLogin(email.trim(), password) },
                 enabled = isFormValid,
                 shape = ButtonShape,
                 colors = ButtonDefaults.buttonColors(
@@ -150,6 +154,37 @@ fun LoginScreen(
                     .height(56.dp)
             ) {
                 Text("Sign in", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+
+        if (loading){
+            // Show loading indicator
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
+            }
+        }
+        if( error != null) {
+            // Show error message
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.Red
+                )
             }
         }
 

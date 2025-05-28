@@ -28,7 +28,7 @@ class AuthRepository(
                 email = email,
                 themePreference = "light",
                 createdAt = System.currentTimeMillis(),
-                passwordHash = password // Hashing should be add
+                // password alanı çıkarıldı
             )
 
             firestore.collection("users").document(userId).set(user).await()
@@ -42,26 +42,24 @@ class AuthRepository(
 
     suspend fun loginUser(email: String, password: String): Result<UserEntity> {
         return try {
-            // Firebase, şifreyi burada kendisi doğrular
             val result = auth.signInWithEmailAndPassword(email, password).await()
-            val userId = result.user?.uid ?: return Result.failure(Exception("UID alınamadı"))
+            val userId = result.user?.uid ?: return Result.failure(Exception("UID boş"))
 
-            // Firestore'dan kullanıcı verisini al
             val snapshot = firestore.collection("users").document(userId).get().await()
-            val data = snapshot.data ?: return Result.failure(Exception("Kullanıcı Firestore'da bulunamadı"))
+            val userMap = snapshot.data ?: return Result.failure(Exception("Firestore'da kullanıcı bulunamadı"))
 
-            // Firestore'dan dönen veriyi UserEntity'ye dönüştür
-            val user = UserEntity(
+            val userEntity = UserEntity(
                 userId = userId,
-                username = data["username"] as String,
-                email = data["email"] as String,
-                themePreference = data["themePreference"] as String,
-                createdAt = data["createdAt"] as Long,
-                passwordHash = password // Hashing should be add
-
+                username = userMap["username"] as String,
+                email = userMap["email"] as String,
+                themePreference = userMap["themePreference"] as String,
+                createdAt = userMap["createdAt"] as Long,
+                // password yok!
             )
 
-            Result.success(user)
+            userDao.insertUser(userEntity)
+
+            Result.success(userEntity)
         } catch (e: Exception) {
             Result.failure(e)
         }
