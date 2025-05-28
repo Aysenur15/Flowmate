@@ -8,6 +8,7 @@ import com.flowmate.ui.component.AuthState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
@@ -18,11 +19,15 @@ class AuthViewModel(
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     // for greeting on HomeScreen
-    private val _currentUserName = MutableStateFlow("")
-    val currentUserName: StateFlow<String> = _currentUserName
+    //private val _currentUserName = MutableStateFlow("")
+    //val currentUserName: StateFlow<String> = _currentUserName
 
     private val _user = MutableStateFlow<UserEntity?>(null)
     val user: StateFlow<UserEntity?> = _user.asStateFlow()
+
+    val currentUserName = _user.asStateFlow().map { user ->
+        user?.username ?: ""
+    }
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()

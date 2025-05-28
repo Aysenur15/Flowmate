@@ -15,8 +15,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -26,17 +24,16 @@ import com.flowmate.R
 import com.flowmate.ui.component.MainRoute
 import com.flowmate.ui.component.getTodayQuote
 import com.flowmate.ui.theme.ButtonShape
-import com.flowmate.viewmodel.AuthViewModel
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onNavigateTo: (MainRoute) -> Unit,
-    viewModel: AuthViewModel
+    userName: String,
 
 ) {
 
-    val userName by viewModel.currentUserName.collectAsState()
+
 
     Column(
         modifier = modifier

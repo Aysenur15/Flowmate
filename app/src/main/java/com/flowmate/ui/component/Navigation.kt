@@ -135,7 +135,7 @@ private fun NavGraphBuilder.mainNavGraph(
                         launchSingleTop = true
                     }
                 },
-                viewModel = authViewModel,
+                userName = user?.username ?: "",
 
             )
         }
