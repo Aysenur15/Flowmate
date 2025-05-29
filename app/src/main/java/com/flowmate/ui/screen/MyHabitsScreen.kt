@@ -27,20 +27,25 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,16 +55,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.flowmate.repository.HabitRepository
 import com.flowmate.ui.component.Habit
 import com.flowmate.ui.component.SmartSuggestion
 import com.flowmate.ui.theme.HabitCardBg
 import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import androidx.compose.material3.Switch
-import androidx.compose.material3.*
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.navigation.NavController
 
 
 // 3. The MyHabitsScreen composable
@@ -199,10 +203,27 @@ fun MyHabitsWithModalSheet(
     onAddHabit: (Habit) -> Unit,
     navController: NavController
 ) {
-    // ✅ Correctly declared sheet state and scope
+    val habitRepository = remember { HabitRepository() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
 
+    var habitList by remember { mutableStateOf<List<Habit>>(emptyList()) }
+
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            habitList = habitRepository.getHabitsFromFirestore(userId)
+        }
+    }
+
+    val onToggleCompleteHandler: (String) -> Unit = { habitId ->
+        if (userId != null) {
+            scope.launch {
+                habitRepository.markHabitCompletedForToday(userId, habitId)
+                habitList = habitRepository.getHabitsFromFirestore(userId)
+            }
+        }
+    }
 
     var newHabitName by remember { mutableStateOf("") }
     var hardnessLevel by remember { mutableStateOf("") }
@@ -213,7 +234,6 @@ fun MyHabitsWithModalSheet(
     var reminderEnabled by remember { mutableStateOf(false) }
     var reminderTime by remember { mutableStateOf("") }
 
-    // ✅ Modal Bottom Sheet
     if (sheetState.isVisible) {
         ModalBottomSheet(
             onDismissRequest = { scope.launch { sheetState.hide() } },
@@ -360,7 +380,7 @@ fun MyHabitsWithModalSheet(
 
                     Button(
                         onClick = {
-                            if (newHabitName.isNotBlank()) {
+                            if (newHabitName.isNotBlank() && userId != null) {
                                 val frequency = if (frequencyCount.isNotBlank())
                                     "$frequencyCount per $frequencyPeriod"
                                 else ""
@@ -376,15 +396,21 @@ fun MyHabitsWithModalSheet(
                                     reminderTime = if (reminderEnabled) reminderTime else null
                                 )
 
-                                onAddHabit(habit)
-
-                                newHabitName = ""
-                                hardnessLevel = ""
-                                frequencyCount = ""
-                                frequencyPeriod = "day"
-                                reminderEnabled = false
-                                reminderTime = ""
-                                scope.launch { sheetState.hide() }
+                                scope.launch {
+                                    try {
+                                        habitRepository.addHabitToFirestore(userId, habit)
+                                    } catch (e: Exception) {
+                                        // Hata yönetimi: Snackbar, Toast, log, vs. eklenebilir
+                                    }
+                                    onAddHabit(habit)
+                                    newHabitName = ""
+                                    hardnessLevel = ""
+                                    frequencyCount = ""
+                                    frequencyPeriod = "day"
+                                    reminderEnabled = false
+                                    reminderTime = ""
+                                    sheetState.hide()
+                                }
                             }
                         },
                         modifier = Modifier.weight(1f)
@@ -397,11 +423,11 @@ fun MyHabitsWithModalSheet(
     }
 
     MyHabitsScreen(
-        habits = habits,
+        habits = habitList,
         suggestions = suggestions,
-        onToggleComplete = onToggleComplete,
+        onToggleComplete = onToggleCompleteHandler,
         onAddHabit = { scope.launch { sheetState.show() } },
-        navController = navController // ✅ pass the actual instance
+        navController = navController
     )
 
 }
