@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -42,21 +43,34 @@ fun ReportsScreen(
     onEntryClick: (ReportEntry) -> Unit
 ) {
     val habitData by viewModel.weeklyHabitData.collectAsState()
+    val habitConsistency by viewModel.habitConsistency.collectAsState()
+    val difficultyBreakdown by viewModel.difficultyBreakdown.collectAsState()
     val selectedRange by timerViewModel.selectedRange.collectAsState()
     val timeSegments by timerViewModel.timeSegments.collectAsState()
 
+    val userId = "leJ77vgw5pYlCj0fawhOVwoTJqx1"
+    val reportDate = "2025-05-28"
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchHabitDurationsForDate(userId = userId, date = reportDate)
+        viewModel.fetchHabitTimeSegments(userId = userId, date = reportDate)
+        viewModel.fetchHabitConsistencyFromCompletedDates(userId = userId)
+        viewModel.fetchDifficultyBreakdown(userId)
+    }
+
     Scaffold { padding ->
         val scrollState = rememberScrollState()
+
         Column(
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
-
         ) {
             Spacer(Modifier.height(8.dp))
 
+            // ✅ Weekly pie chart (7-day summary)
             if (habitData.isNotEmpty()) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -67,13 +81,16 @@ fun ReportsScreen(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
+            // ✅ Time bar chart (daily/weekly/monthly)
             HabitTimeBarChart(
                 segments = timeSegments,
                 selectedRange = selectedRange,
                 onRangeSelected = { timerViewModel.onRangeSelected(it) }
             )
+
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ✅ Habit consistency grid and difficulty breakdown
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -84,13 +101,7 @@ fun ReportsScreen(
                         .padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    HabitConsistencyGrid(
-                        habitData = listOf(
-                            "Exercise" to listOf(true, false, true, true, false, false, false),
-                            "Reading" to listOf(true, true, true, true, true, true, true),
-                            "Meditation" to listOf(false, false, true, true, false, false, false)
-                        )
-                    )
+                    HabitConsistencyGrid(habitData = habitConsistency)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -103,14 +114,16 @@ fun ReportsScreen(
                             .fillMaxWidth()
                             .padding(bottom = 8.dp)
                     )
-                    HabitDifficultyBreakdown()
 
-
-                    Spacer(modifier = Modifier.height(8.dp))
+                    // ✅ Dynamic breakdown using Firestore data
+                    HabitDifficultyBreakdown(data = difficultyBreakdown)
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    DailyMessageCard(quote = getTodayQuote().first, author = getTodayQuote().second)
+                    DailyMessageCard(
+                        quote = getTodayQuote().first,
+                        author = getTodayQuote().second
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -124,6 +137,7 @@ fun ReportsScreen(
                 }
             }
 
+            // ✅ Optional report cards at bottom
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()

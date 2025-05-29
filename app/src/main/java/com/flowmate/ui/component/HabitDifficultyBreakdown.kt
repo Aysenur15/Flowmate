@@ -12,20 +12,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.flowmate.viewmodel.DifficultyCounts
 
 @Composable
-fun HabitDifficultyBreakdown() {
+fun HabitDifficultyBreakdown(data: List<DifficultyCounts>) {
     val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-    val dummyData = mapOf(
-        "Mon" to Triple(2, 1, 3),
-        "Tue" to Triple(1, 2, 2),
-        "Wed" to Triple(3, 0, 1),
-        "Thu" to Triple(2, 2, 2),
-        "Fri" to Triple(1, 1, 3),
-        "Sat" to Triple(0, 2, 2),
-        "Sun" to Triple(2, 1, 1)
-    )
-
     val EasyColor = Color(0xFFE7C293)
     val MediumColor = Color(0xFFFFAB91)
     val HardColor = Color(0xFF4DB6AC)
@@ -44,9 +35,9 @@ fun HabitDifficultyBreakdown() {
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Bottom
         ) {
-            dayLabels.forEach { day ->
-                val (easy, medium, hard) = dummyData[day] ?: Triple(0, 0, 0)
-                val total = (easy + medium + hard).coerceAtLeast(1)
+            dayLabels.forEachIndexed { index, day ->
+                val dayData = data.getOrNull(index) ?: DifficultyCounts(0, 0, 0)
+                val total = (dayData.easy + dayData.medium + dayData.hard).coerceAtLeast(1)
                 val unitHeight = maxBarHeight.value / total
 
                 Column(
@@ -56,19 +47,19 @@ fun HabitDifficultyBreakdown() {
                 ) {
                     Box(
                         modifier = Modifier
-                            .height((hard * unitHeight).dp)
+                            .height((dayData.hard * unitHeight).dp)
                             .width(20.dp)
                             .background(HardColor)
                     )
                     Box(
                         modifier = Modifier
-                            .height((medium * unitHeight).dp)
+                            .height((dayData.medium * unitHeight).dp)
                             .width(20.dp)
                             .background(MediumColor)
                     )
                     Box(
                         modifier = Modifier
-                            .height((easy * unitHeight).dp)
+                            .height((dayData.easy * unitHeight).dp)
                             .width(20.dp)
                             .background(EasyColor)
                     )
@@ -80,7 +71,7 @@ fun HabitDifficultyBreakdown() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Single correct legend
+        // Legend
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -106,4 +97,3 @@ fun HabitDifficultyBreakdown() {
         }
     }
 }
-
