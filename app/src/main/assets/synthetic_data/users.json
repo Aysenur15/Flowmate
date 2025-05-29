@@ -1,0 +1,17 @@
+[
+  {
+    "userId": "1a2b3c4d-0000-0000-0000-000000000001",
+    "username": "syntheticuser1",
+    "email": "synthetic1@example.com",
+    "themePreference": "dark",
+    "createdAt": 1717000000000
+  },
+  {
+    "userId": "1a2b3c4d-0000-0000-0000-000000000002",
+    "username": "syntheticuser2",
+    "email": "synthetic2@example.com",
+    "themePreference": "light",
+    "createdAt": 1717000001000
+  }
+]
+

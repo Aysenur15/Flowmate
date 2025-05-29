@@ -51,8 +51,8 @@ fun LoginScreen(
     onLogin: (String, String) -> Unit,
     onNavigateToSignUp: () -> Unit,
     loading: Boolean,
-    error: String?
-
+    error: String?,
+    viewModel: com.flowmate.viewmodel.AuthViewModel
 ) {
     // UI state
     var username by rememberSaveable { mutableStateOf("") }
@@ -204,5 +204,16 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+
+        // --- Sentetik veri ekleme butonu ---
+        Button(
+            onClick = { viewModel.seedFirestoreWithSampleData() },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Text("Sentetik Veri Ekle")
+        }
     }
 }
+

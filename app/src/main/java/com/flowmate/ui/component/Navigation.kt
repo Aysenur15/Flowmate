@@ -110,7 +110,8 @@ private fun NavGraphBuilder.authNavGraph(
                 onLogin = { u, p -> authViewModel.login(u.trim(), p) },
                 onNavigateToSignUp = { navController.navigate(AuthRoute.SignUp.route) },
                 loading = loading,
-                error = error
+                error = error,
+                viewModel = authViewModel
             )
         }
         composable(AuthRoute.SignUp.route) {

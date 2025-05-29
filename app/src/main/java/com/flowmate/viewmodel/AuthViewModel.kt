@@ -22,6 +22,8 @@ class AuthViewModel(
     //private val _currentUserName = MutableStateFlow("")
     //val currentUserName: StateFlow<String> = _currentUserName
 
+
+
     private val _user = MutableStateFlow<UserEntity?>(null)
     val user: StateFlow<UserEntity?> = _user.asStateFlow()
 
@@ -72,5 +74,9 @@ class AuthViewModel(
         authRepository.signOut()
         _user.value = null
         _error.value = null
+    }
+
+    fun seedFirestoreWithSampleData() {
+        com.flowmate.data.FirestoreSeeder.seedFirestoreWithSampleData()
     }
 }
