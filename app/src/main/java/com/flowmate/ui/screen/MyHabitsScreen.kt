@@ -60,6 +60,7 @@ import com.flowmate.ui.component.SmartSuggestion
 import com.flowmate.ui.theme.HabitCardBg
 import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
+import com.flowmate.viewmodel.MyHabitsViewModal
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -75,6 +76,7 @@ fun MyHabitsScreen(
     navController: NavController
 ) {
     val habitRepository = remember { HabitRepository() }
+    val habitViewModel = remember { MyHabitsViewModal() }
     val scope = rememberCoroutineScope()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -168,6 +170,7 @@ fun MyHabitsScreen(
                             IconButton(onClick = {
                                 scope.launch {
                                     habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
+                                    //habitViewModel.refreshHabits()
                                 }
                             }) {
                                 val todayMillis = java.time.LocalDate.now()

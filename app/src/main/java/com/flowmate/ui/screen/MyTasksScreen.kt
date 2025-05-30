@@ -1,5 +1,6 @@
 package com.flowmate.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.flowmate.repository.TaskRepository
 import com.flowmate.ui.component.TaskItem
@@ -104,13 +107,42 @@ fun MyTasksScreen(
                 )
                 Spacer(Modifier.height(16.dp))
 
+                val context = LocalContext.current
+                val datePickerDialog = remember {
+                    android.app.DatePickerDialog(
+                        context,
+                        { _, year, month, dayOfMonth ->
+                            newTaskDueTime = "%02d-%02d-%04d".format(dayOfMonth, month + 1, year)
+                        },
+                        java.util.Calendar.getInstance().get(java.util.Calendar.YEAR),
+                        java.util.Calendar.getInstance().get(java.util.Calendar.MONTH),
+                        java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH)
+                    )
+                }
+                Button(
+                    onClick = { datePickerDialog.show() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Select Due Date")
+                }
+
                 OutlinedTextField(
                     value = newTaskDueTime,
                     onValueChange = { newTaskDueTime = it },
-                    label = { Text("Due Time") },
+                    label = { Text("Due Date") },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            datePickerDialog.show()
+                        },
+                    readOnly = true
                 )
                 Spacer(Modifier.height(16.dp))
 
