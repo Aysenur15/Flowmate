@@ -40,7 +40,7 @@ import com.flowmate.ui.component.WeeklyHabitPieChart
 import com.flowmate.ui.component.getTodayQuote
 import com.flowmate.viewmodel.ReportsViewModel
 import com.flowmate.viewmodel.TimerStatsViewModel
-import com.flowmate.ui.component.DifficultyCounts
+import com.google.firebase.auth.FirebaseAuth
 
 // 1. Model for a detailed report entry (could be a chart, table, etc.)
 data class ReportEntry(
@@ -66,7 +66,8 @@ fun ReportsScreen(
     val selectedRange by timerViewModel.selectedRange.collectAsState()
     val timeSegments by timerViewModel.timeSegments.collectAsState()
 
-    val userId = "leJ77vgw5pYlCj0fawhOVwoTJqx1"
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
     val reportDate = "2025-05-28"
     android.util.Log.d("ReportsScreen", "Time Segments: $timeSegments")
 
@@ -74,10 +75,10 @@ fun ReportsScreen(
 
 
     LaunchedEffect(Unit) {
-        viewModel.fetchHabitDurationsForDate(userId = userId, date = reportDate)
-        viewModel.fetchHabitTimeSegments(userId = userId, date = reportDate)
-        viewModel.fetchHabitConsistencyFromCompletedDates(userId = userId)
-        viewModel.fetchDifficultyDataFromFirestore(userId)
+        viewModel.fetchHabitDurationsForDate(userId = userId.toString(), date = reportDate)
+        viewModel.fetchHabitTimeSegments(userId = userId.toString(), date = reportDate)
+        viewModel.fetchHabitConsistencyFromCompletedDates(userId = userId.toString())
+        viewModel.fetchDifficultyDataFromFirestore(userId.toString())
     }
 
     Scaffold { padding ->
@@ -138,7 +139,7 @@ fun ReportsScreen(
                     )
 
                     // ✅ Dynamic breakdown using Firestore data
-                    HabitDifficultyBreakdown(userId = userId)
+                    HabitDifficultyBreakdown(userId = userId.toString())
 
                     Spacer(modifier = Modifier.height(24.dp))
 
