@@ -75,7 +75,7 @@ fun LoginScreen(
             Spacer(Modifier.height(40.dp))
             // TODO: Replace with your real logo
             Icon(
-                painter = painterResource(R.drawable.ic_launcher_foreground),
+                painter = painterResource(R.drawable.icon),
                 contentDescription = "FlowMate Logo",
                 tint = Color.Unspecified,
                 modifier = Modifier.size(96.dp)
