@@ -3,6 +3,7 @@ package com.flowmate.viewmodel
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,9 @@ class TimerStatsViewModel : ViewModel() {
     private val _timeSegments = MutableStateFlow<List<HabitTimeSegment>>(emptyList())
     val timeSegments: StateFlow<List<HabitTimeSegment>> = _timeSegments
 
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+
     // Colors to cycle through
     private val colors = listOf(
         Color(0xFF42A5F5), // Blue
@@ -39,13 +43,13 @@ class TimerStatsViewModel : ViewModel() {
 
     init {
         val today = getTodayDate()
-        loadTimeSegments(TimeRange.WEEKLY, userId = "leJ77vgw5pYlCj0fawhOVwoTJqx1", date = today)
+        loadTimeSegments(TimeRange.WEEKLY, userId = userId.toString(), date = today)
     }
 
     fun onRangeSelected(range: TimeRange) {
         _selectedRange.value = range
         val today = getTodayDate()
-        loadTimeSegments(range, userId = "leJ77vgw5pYlCj0fawhOVwoTJqx1", date = today)
+        loadTimeSegments(range, userId = userId.toString(), date = today)
     }
 
    fun loadTimeSegments(range: TimeRange, userId: String, date: String) {
