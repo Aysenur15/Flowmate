@@ -11,6 +11,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.flowmate.FlowMateApp.Companion.database
@@ -56,6 +57,8 @@ fun FlowMateNavGraph() {
     val user by authViewModel.user.collectAsState()
     val error by authViewModel.error.collectAsState()
     val loading by authViewModel.loading.collectAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
     val isLoggedIn = user != null
 
     // Navigation guard
@@ -77,10 +80,12 @@ fun FlowMateNavGraph() {
 
     // UI Layer
     if (isLoggedIn) {
+        val currentRoute = MainRoute.fromRoute(navBackStackEntry?.destination?.route)
+
         MainFrame(
             onNavigateTo = { route -> navController.navigate(route.route) },
             onLogout = { authViewModel.signOut() },
-            currentDestination = navController.currentBackStackEntry?.destination?.route ?: ""
+            currentRoute =currentRoute
         ) {
             NavHost(
                 navController = navController,

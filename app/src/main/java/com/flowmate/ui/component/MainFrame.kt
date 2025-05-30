@@ -39,7 +39,7 @@ import java.util.Locale
 fun MainFrame(
     onNavigateTo: (MainRoute) -> Unit,
     onLogout: () -> Unit,
-    currentDestination: String,
+    currentRoute: MainRoute,
     content: @Composable () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -86,21 +86,13 @@ fun MainFrame(
                 TopAppBar(
                     title = {
                         Text(
-                            // Capitalize the first letter of each word
-                            text = currentDestination
-                                .split(" ")
-                                .joinToString(" ")
-                                {
-                                    it.replaceFirstChar { char ->
-                                        char.uppercase(Locale.getDefault())
-                                    }
-                                },
+                            text = currentRoute.title,
                             style = MaterialTheme.typography.titleLarge
                         )
                     },
                     colors = TopAppBarDefaults.mediumTopAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent
+                        containerColor = Color(0xFF64B2A9),
+                        scrolledContainerColor = Color(0xFF64B2A9),
                     ),
                     actions = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {

@@ -77,17 +77,6 @@ fun MyHabitsScreen(
     navController: NavController
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("My Habits", style = MaterialTheme.typography.titleLarge) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF4CAF50)),
-                actions = {
-                    IconButton(onClick = { /* TODO: Open settings */ }) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = "Settings")
-                    }
-                }
-            )
-        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { onAddHabit() },
