@@ -32,4 +32,8 @@ class MyTasksViewModal : ViewModel() {
         }
         _tasks.value = updated
     }
+
+    fun addTask(task: TaskItem) {
+        _tasks.value = _tasks.value + task
+    }
 }

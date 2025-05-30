@@ -69,10 +69,6 @@ fun ReportsScreen(
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     val reportDate = "2025-05-28"
-    android.util.Log.d("ReportsScreen", "Time Segments: $timeSegments")
-
-
-
 
     LaunchedEffect(Unit) {
         viewModel.fetchHabitDurationsForDate(userId = userId.toString(), date = reportDate)

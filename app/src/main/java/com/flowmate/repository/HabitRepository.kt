@@ -1,9 +1,9 @@
 package com.flowmate.repository
 
 import com.flowmate.ui.component.Habit
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import java.util.Calendar
 
 class HabitRepository {
     private val habits = mutableListOf<Habit>()
@@ -68,42 +68,26 @@ class HabitRepository {
                 hardnessLevel = (doc.getLong("difficultyLevel") ?: 1L).toInt(),
                 frequency = doc.getString("recurrence") ?: "",
                 reminderEnabled = doc.get("reminderTime") != null,
-                reminderTime = doc.getString("reminderTime")
+                reminderTime = doc.getString("reminderTime"),
+                completedDates = doc.get("completedDates") as? List<Long> ?: emptyList()
             )
         }
     }
 
     suspend fun markHabitCompletedForToday(userId: String, habitId: String) {
         if (habitId.isBlank()) return
-        val today = System.currentTimeMillis()
+        val today = java.time.LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
         val habitRef = firestore.collection("users")
             .document(userId)
             .collection("habits")
             .document(habitId)
-        firestore.runTransaction { transaction ->
-            val snapshot = transaction.get(habitRef)
-            val completedDates = (snapshot.get("completedDates") as? List<Long>)?.toMutableList() ?: mutableListOf()
-            // Aynı gün tekrar eklenmesin diye kontrol
-            val todayMidnight = Calendar.getInstance().apply {
-                timeInMillis = today
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-            val alreadyCompleted = completedDates.any {
-                Calendar.getInstance().apply {
-                    timeInMillis = it
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis == todayMidnight
-            }
-            if (!alreadyCompleted) {
-                completedDates.add(today)
-                transaction.update(habitRef, "completedDates", completedDates)
-            }
-        }.await()
+        println("Firestore güncelleme deneniyor: userId=$userId, habitId=$habitId, today=$today")
+        try {
+            habitRef.update("completedDates", FieldValue.arrayUnion(today)).await()
+            println("Firestore BAŞARILI şekilde güncellendi.")
+        } catch (e: Exception) {
+            println("Firestore update HATASI: ${e.message}")
+        }
     }
+
 }

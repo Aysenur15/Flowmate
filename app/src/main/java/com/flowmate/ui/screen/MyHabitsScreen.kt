@@ -41,8 +41,6 @@ import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,6 +74,10 @@ fun MyHabitsScreen(
     onAddHabit: () -> Unit,
     navController: NavController
 ) {
+    val habitRepository = remember { HabitRepository() }
+    val scope = rememberCoroutineScope()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -114,6 +116,15 @@ fun MyHabitsScreen(
                         }
                     }
                 }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = { navController.navigate("habitProgress") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text("View Progress")
             }
 
             Spacer(Modifier.height(16.dp))
@@ -154,8 +165,16 @@ fun MyHabitsScreen(
                                 modifier = Modifier.weight(1f)
                             )
                             Spacer(Modifier.width(16.dp))
-                            IconButton(onClick = { onToggleComplete(habit.id) }) {
-                                val icon = if (habit.isCompletedToday)
+                            IconButton(onClick = {
+                                scope.launch {
+                                    habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
+                                }
+                            }) {
+                                val todayMillis = java.time.LocalDate.now()
+                                    .atStartOfDay(java.time.ZoneId.systemDefault())
+                                    .toInstant()
+                                    .toEpochMilli()
+                                val icon = if (habit.completedDates.contains(todayMillis))
                                     Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked
                                 Icon(
                                     imageVector = icon,
@@ -170,14 +189,7 @@ fun MyHabitsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = { navController.navigate("habitProgress") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text("View Progress")
-            }
+
         }
     }
 }
@@ -208,6 +220,8 @@ fun MyHabitsWithModalSheet(
     val onToggleCompleteHandler: (String) -> Unit = { habitId ->
         if (userId != null) {
             scope.launch {
+                android.util.Log.d("MyHabitsScreen", " Toggling completion for habit: $habitId")
+
                 habitRepository.markHabitCompletedForToday(userId, habitId)
                 habitList = habitRepository.getHabitsFromFirestore(userId)
             }
@@ -389,7 +403,7 @@ fun MyHabitsWithModalSheet(
                                     try {
                                         habitRepository.addHabitToFirestore(userId, habit)
                                     } catch (e: Exception) {
-                                        // Hata yönetimi: Snackbar, Toast, log, vs. eklenebilir
+
                                     }
                                     onAddHabit(habit)
                                     newHabitName = ""

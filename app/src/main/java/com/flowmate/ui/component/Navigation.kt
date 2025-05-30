@@ -193,7 +193,7 @@ private fun NavGraphBuilder.mainNavGraph(
             MyTasksScreen(
                 tasks = tasks,
                 onToggleTask = { task -> myTasksViewModal.toggleTaskCompletion(task) },
-                onAddTask = { /* Add task logic */ }
+                onAddTask = { task -> myTasksViewModal.addTask(task) },
             )
         }
 

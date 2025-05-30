@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,11 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.flowmate.repository.TaskRepository
 import com.flowmate.ui.component.TaskItem
 import com.flowmate.ui.theme.CardShape
 import com.flowmate.ui.theme.DoneColor
 import com.flowmate.ui.theme.PendingColor
 import com.flowmate.ui.theme.TaskCardBg
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +64,17 @@ fun MyTasksScreen(
     var newTaskDueTime by remember { mutableStateOf("") }
     var hardnessLevel by remember { mutableStateOf("") }
     var reminderEnabled by remember { mutableStateOf(false) }
+    var taskRepository = remember { TaskRepository() }
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+    var taskList: List<TaskItem> by remember { mutableStateOf<List<TaskItem>>(emptyList()) }
+
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            taskList = taskRepository.getTasksFromFirestore(userId)
+        }
+    }
+
 
 
     if (sheetState.isVisible) {
@@ -174,6 +188,14 @@ fun MyTasksScreen(
                                     reminderEnabled = reminderEnabled,
                                     reminderTime = if (reminderEnabled) reminderTime else null
                                 )
+                                scope.launch {
+                                    try {
+                                        taskRepository.addTaskToFirestore(userId = userId.toString(), task = newTask)
+                                    }
+                                    catch ( e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
                                 onAddTask(newTask)
 
                                 newTaskTitle = ""
@@ -207,7 +229,7 @@ fun MyTasksScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            items(tasks) { task ->
+            items(taskList) { task ->
                 Card(
                     shape = CardShape,
                     colors = CardDefaults.cardColors(containerColor = TaskCardBg),
@@ -219,15 +241,6 @@ fun MyTasksScreen(
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
-                        IconButton(onClick = { onToggleTask(task.id) }) {
-                            val icon =
-                                if (task.isCompleted) Icons.Default.CheckCircle else Icons.Default.AccessTime
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = if (task.isCompleted) "Mark incomplete" else "Mark complete",
-                                tint = if (task.isCompleted) DoneColor else PendingColor
-                            )
-                        }
 
                         Spacer(Modifier.width(16.dp))
 
@@ -250,6 +263,27 @@ fun MyTasksScreen(
                                     color = Color(0xFF4CAF50) // green-ish
                                 )
                             }
+                        }
+
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    if (userId != null) {
+                                        taskRepository.updateTaskCompletionInFirestore(
+                                            userId = userId,
+                                            taskId = task.id,
+                                            isCompleted = !task.isCompleted
+                                        )
+                                    }
+                                }
+                            },
+                            enabled = !task.isCompleted
+                        ) {
+                            Icon(
+                                imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Default.AccessTime,
+                                contentDescription = if (task.isCompleted) "Tamamlandı" else "Tamamlanmadı",
+                                tint = if (task.isCompleted) DoneColor else PendingColor
+                            )
                         }
                     }
                 }
