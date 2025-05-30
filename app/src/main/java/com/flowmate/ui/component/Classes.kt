@@ -9,12 +9,14 @@ import java.time.LocalDate
 data class Habit(
     val id: String,
     val title: String,
-    val weeklyProgress: Float, // 0f..1f
+    val weeklyProgress: Float,
     val isCompletedToday: Boolean,
     val hardnessLevel: Int,
-    val frequency: String="",
-    val reminderEnabled: Boolean=false,
-    val reminderTime: String? = null
+    val frequency: String = "",
+    val reminderEnabled: Boolean = false,
+    val reminderTime: String? = null,
+    val completedDates: List<Long> = emptyList(),
+    val userId: String = ""
 )
 
 data class SmartSuggestion(
@@ -63,6 +65,10 @@ data class AiSuggestion(
     val title: String,
     val message: String
 )
-
+data class DifficultyCounts(
+    val easy: Int,
+    val medium: Int,
+    val hard: Int
+)
 
 

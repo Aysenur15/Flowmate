@@ -6,94 +6,50 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flowmate.viewmodel.DifficultyCounts
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowmate.ui.component.DifficultyCounts
+import com.flowmate.viewmodel.ReportsViewModel
 
 @Composable
-fun HabitDifficultyBreakdown(data: List<DifficultyCounts>) {
-    val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-    val EasyColor = Color(0xFFE7C293)
-    val MediumColor = Color(0xFFFFAB91)
-    val HardColor = Color(0xFF4DB6AC)
-    val maxBarHeight = 100.dp
+fun HabitDifficultyBreakdown(userId: String) {
+    val reportsViewModel: ReportsViewModel = viewModel()
+    val rawData by reportsViewModel.difficultyRawData.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        // Bar chart
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(maxBarHeight),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            dayLabels.forEachIndexed { index, day ->
-                val dayData = data.getOrNull(index) ?: DifficultyCounts(0, 0, 0)
-                val total = (dayData.easy + dayData.medium + dayData.hard).coerceAtLeast(1)
-                val unitHeight = maxBarHeight.value / total
+    LaunchedEffect(userId) {
+        reportsViewModel.fetchDifficultyDataFromFirestore(userId)
+    }
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom,
-                    modifier = Modifier.fillMaxHeight()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .height((dayData.hard * unitHeight).dp)
-                            .width(20.dp)
-                            .background(HardColor)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .height((dayData.medium * unitHeight).dp)
-                            .width(20.dp)
-                            .background(MediumColor)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .height((dayData.easy * unitHeight).dp)
-                            .width(20.dp)
-                            .background(EasyColor)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = day, fontSize = 12.sp)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Legend
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp)
-        ) {
-            listOf(
-                "Easy" to EasyColor,
-                "Medium" to MediumColor,
-                "Hard" to HardColor
-            ).forEach { (label, color) ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(14.dp)
-                            .background(color, RoundedCornerShape(3.dp))
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = label, fontSize = 14.sp)
-                }
-            }
-        }
+    if (rawData.isNotEmpty()) {
+        val data = mapToDifficultyCounts(rawData)
+        HabitDifficultyBreakdownGraph(data)
+    } else {
+        Text("Data loading...")
     }
 }
+fun mapToDifficultyCounts(raw: List<List<Int>>): List<DifficultyCounts> {
+    return raw.mapIndexed { index, dailyList ->
+        var easy = 0
+        var medium = 0
+        var hard = 0
+
+        dailyList.forEach { level ->
+            when (level) {
+                1, 2 -> easy++
+                3 -> medium++
+                4, 5 -> hard++
+            }
+        }
+
+        DifficultyCounts(easy, medium, hard)
+    }
+}
+

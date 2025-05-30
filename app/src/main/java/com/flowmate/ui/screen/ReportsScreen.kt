@@ -40,6 +40,7 @@ import com.flowmate.ui.component.WeeklyHabitPieChart
 import com.flowmate.ui.component.getTodayQuote
 import com.flowmate.viewmodel.ReportsViewModel
 import com.flowmate.viewmodel.TimerStatsViewModel
+import com.flowmate.ui.component.DifficultyCounts
 
 // 1. Model for a detailed report entry (could be a chart, table, etc.)
 data class ReportEntry(
@@ -62,7 +63,6 @@ fun ReportsScreen(
 ) {
     val habitData by viewModel.weeklyHabitData.collectAsState()
     val habitConsistency by viewModel.habitConsistency.collectAsState()
-    val difficultyBreakdown by viewModel.difficultyBreakdown.collectAsState()
     val selectedRange by timerViewModel.selectedRange.collectAsState()
     val timeSegments by timerViewModel.timeSegments.collectAsState()
 
@@ -77,7 +77,7 @@ fun ReportsScreen(
         viewModel.fetchHabitDurationsForDate(userId = userId, date = reportDate)
         viewModel.fetchHabitTimeSegments(userId = userId, date = reportDate)
         viewModel.fetchHabitConsistencyFromCompletedDates(userId = userId)
-        viewModel.fetchDifficultyBreakdown(userId)
+        viewModel.fetchDifficultyDataFromFirestore(userId)
     }
 
     Scaffold { padding ->
@@ -138,7 +138,7 @@ fun ReportsScreen(
                     )
 
                     // ✅ Dynamic breakdown using Firestore data
-                    HabitDifficultyBreakdown(data = difficultyBreakdown)
+                    HabitDifficultyBreakdown(userId = userId)
 
                     Spacer(modifier = Modifier.height(24.dp))
 

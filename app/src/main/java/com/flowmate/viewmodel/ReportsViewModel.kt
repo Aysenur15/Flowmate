@@ -7,12 +7,20 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Calendar
+import com.flowmate.ui.component.DifficultyCounts
 
-// ✅ Move this outside the class
-data class DifficultyCounts(val easy: Int, val medium: Int, val hard: Int)
+
+data class Habit(
+    val difficultyLevel: Int,
+    val completedDates: List<Long>
+)
 
 class ReportsViewModel : ViewModel() {
+
     private val db = FirebaseFirestore.getInstance()
 
     private val _weeklyHabitData = MutableStateFlow<Map<String, Int>>(emptyMap())
@@ -24,8 +32,8 @@ class ReportsViewModel : ViewModel() {
     private val _habitConsistency = MutableStateFlow<List<Pair<String, List<Boolean>>>>(emptyList())
     val habitConsistency: StateFlow<List<Pair<String, List<Boolean>>>> = _habitConsistency
 
-    private val _difficultyBreakdown = MutableStateFlow<List<DifficultyCounts>>(emptyList())
-    val difficultyBreakdown: StateFlow<List<DifficultyCounts>> = _difficultyBreakdown
+    private val _difficultyRawData = MutableStateFlow<List<List<Int>>>(emptyList())
+    val difficultyRawData: StateFlow<List<List<Int>>> = _difficultyRawData
 
     private val colors = listOf(
         Color(0xFF42A5F5), Color(0xFF66BB6A), Color(0xFFFFA726),
@@ -83,8 +91,8 @@ class ReportsViewModel : ViewModel() {
                     return@addOnSuccessListener
                 }
 
-                snapshot.documents.forEachIndexed { _, doc ->
-                    val habitId = doc.getString("habitId") ?: return@forEachIndexed
+                snapshot.documents.forEach { doc ->
+                    val habitId = doc.getString("habitId") ?: return@forEach
                     val duration = doc.getLong("duration")?.toInt() ?: 0
 
                     db.collection("habits").document(habitId).get()
@@ -157,60 +165,59 @@ class ReportsViewModel : ViewModel() {
 
                     habitName to weeklyStatus
                 }
-                android.util.Log.d("ReportsViewModel", "Habit consistency: $result")
 
                 viewModelScope.launch { _habitConsistency.emit(result) }
             }
     }
 
-    fun fetchDifficultyBreakdown(userId: String) {
-        val today = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
+    fun fetchDifficultyDataFromFirestore(userId: String) {
 
-        val past7Midnights = (0..6).map {
-            Calendar.getInstance().apply {
-                timeInMillis = today.timeInMillis
-                add(Calendar.DAY_OF_YEAR, -it)
-            }.timeInMillis
-        }.reversed()
-
-        db.collection("habits")
-            .whereEqualTo("userId", userId)
+        db.collection("users")
+            .document(userId)
+            .collection("habits")
             .get()
             .addOnSuccessListener { snapshot ->
-                val dayWiseCounts = MutableList(7) { DifficultyCounts(0, 0, 0) }
+                val habits = snapshot.documents.mapNotNull { doc ->
+                    val level = (doc.get("difficultyLevel") as? Long)?.toInt()
+                    val dates = doc.get("completedDates") as? List<Long>
 
-                snapshot.documents.forEach { doc ->
-                    val difficulty = doc.getString("difficultyLevel") ?: return@forEach
-                    val completedDates = doc.get("completedDates") as? List<Long> ?: emptyList()
-
-                    past7Midnights.forEachIndexed { index, day ->
-                        val matched = completedDates.any { completed ->
-                            Calendar.getInstance().apply {
-                                timeInMillis = completed
-                                set(Calendar.HOUR_OF_DAY, 0)
-                                set(Calendar.MINUTE, 0)
-                                set(Calendar.SECOND, 0)
-                                set(Calendar.MILLISECOND, 0)
-                            }.timeInMillis == day
-                        }
-
-                        if (matched) {
-                            dayWiseCounts[index] = when (difficulty.lowercase()) {
-                                "easy" -> dayWiseCounts[index].copy(easy = dayWiseCounts[index].easy + 1)
-                                "medium" -> dayWiseCounts[index].copy(medium = dayWiseCounts[index].medium + 1)
-                                "hard" -> dayWiseCounts[index].copy(hard = dayWiseCounts[index].hard + 1)
-                                else -> dayWiseCounts[index]
-                            }
-                        }
+                    if (level != null && dates != null) {
+                        Habit(level, dates)
+                    } else {
+                        null
                     }
                 }
 
-                viewModelScope.launch { _difficultyBreakdown.emit(dayWiseCounts) }
+                val grouped = groupHabitsByDay(habits)
+
+                _difficultyRawData.value = grouped
+            }
+            .addOnFailureListener {
+                _difficultyRawData.value = emptyList()
             }
     }
+
+
+    private fun groupHabitsByDay(habits: List<Habit>): List<List<Int>> {
+        val today = LocalDate.now()
+        val last7Days = (0..6).map { today.minusDays((6 - it).toLong()) }
+        val grouped = mutableMapOf<LocalDate, MutableList<Int>>()
+        last7Days.forEach { grouped[it] = mutableListOf() }
+
+        for (habit in habits) {
+            for (timestamp in habit.completedDates) {
+                val localDate = Instant.ofEpochMilli(timestamp)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+
+                if (localDate in grouped) {
+                    grouped[localDate]?.add(habit.difficultyLevel)
+                }
+            }
+        }
+
+        val result = last7Days.map { grouped[it] ?: emptyList() }
+        return result
+    }
+
 }
