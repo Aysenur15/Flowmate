@@ -7,8 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
 
 // ✅ Move this outside the class
 data class DifficultyCounts(val easy: Int, val medium: Int, val hard: Int)
@@ -113,7 +112,8 @@ class ReportsViewModel : ViewModel() {
     }
 
     fun fetchHabitConsistencyFromCompletedDates(userId: String) {
-        val today = Calendar.getInstance().apply {
+        val utc = java.util.TimeZone.getTimeZone("UTC")
+        val today = Calendar.getInstance(utc).apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
@@ -127,13 +127,21 @@ class ReportsViewModel : ViewModel() {
             }.timeInMillis
         }.reversed()
 
-        db.collection("habits")
-            .whereEqualTo("userId", userId)
+        db.collection("users")
+            .document(userId)
+            .collection("habits")
             .get()
             .addOnSuccessListener { snapshot ->
                 val result = snapshot.documents.map { doc ->
                     val habitName = doc.getString("title") ?: "Unknown"
-                    val completedDates = doc.get("completedDates") as? List<Long> ?: emptyList()
+                    val completedDates = (doc.get("completedDates") as? List<*>)?.mapNotNull {
+                        when (it) {
+                            is Long -> it
+                            is Double -> it.toLong()
+                            is Number -> it.toLong()
+                            else -> null
+                        }
+                    } ?: emptyList()
 
                     val weeklyStatus = past7Midnights.map { midnight ->
                         completedDates.any { completed ->
@@ -149,6 +157,7 @@ class ReportsViewModel : ViewModel() {
 
                     habitName to weeklyStatus
                 }
+                android.util.Log.d("ReportsViewModel", "Habit consistency: $result")
 
                 viewModelScope.launch { _habitConsistency.emit(result) }
             }

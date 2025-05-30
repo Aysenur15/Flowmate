@@ -3,6 +3,7 @@ package com.flowmate.repository
 import com.flowmate.ui.component.Habit
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
 
 class HabitRepository {
     private val habits = mutableListOf<Habit>()
@@ -73,8 +74,8 @@ class HabitRepository {
     }
 
     suspend fun markHabitCompletedForToday(userId: String, habitId: String) {
-        if (habitId.isBlank()) return // habitId boşsa işlem yapma
-        val today = java.time.LocalDate.now().toEpochDay()
+        if (habitId.isBlank()) return
+        val today = System.currentTimeMillis()
         val habitRef = firestore.collection("users")
             .document(userId)
             .collection("habits")
@@ -82,7 +83,24 @@ class HabitRepository {
         firestore.runTransaction { transaction ->
             val snapshot = transaction.get(habitRef)
             val completedDates = (snapshot.get("completedDates") as? List<Long>)?.toMutableList() ?: mutableListOf()
-            if (!completedDates.contains(today)) {
+            // Aynı gün tekrar eklenmesin diye kontrol
+            val todayMidnight = Calendar.getInstance().apply {
+                timeInMillis = today
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            val alreadyCompleted = completedDates.any {
+                Calendar.getInstance().apply {
+                    timeInMillis = it
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis == todayMidnight
+            }
+            if (!alreadyCompleted) {
                 completedDates.add(today)
                 transaction.update(habitRef, "completedDates", completedDates)
             }

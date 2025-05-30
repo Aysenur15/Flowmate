@@ -61,6 +61,7 @@ fun FlowMateNavGraph() {
     // Navigation guard
     LaunchedEffect(isLoggedIn) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
+        android.util.Log.d("FlowMateNavGraph", "Current route: ${user?.userId}")
         if (isLoggedIn && currentRoute?.startsWith("auth") == true) {
             navController.navigate("main") {
                 popUpTo("auth") { inclusive = true }
