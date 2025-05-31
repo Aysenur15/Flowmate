@@ -3,6 +3,7 @@ package com.flowmate.ui.component
 import com.flowmate.data.UserEntity
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
 
 
 // 2. Data models
@@ -16,8 +17,9 @@ data class Habit(
     val reminderEnabled: Boolean = false,
     val reminderTime: String? = null,
     val completedDates: List<Long> = emptyList(),
-    val userId: String = ""
-)
+    val userId: String = "",
+
+    )
 
 data class SmartSuggestion(
     val id: String,
@@ -36,20 +38,33 @@ data class TaskItem(
 data class WeeklyHabit(
     val id: String,
     val title: String,
-    val weekStatus: MutableMap<DayOfWeek, HabitStatus>
+    val weekStatus: MutableMap<DayOfWeek, HabitStatus>,
+    val reminderTime: LocalTime? = null,
+    val reminderEnabled: Boolean = false,
+    val frequency: String = ""
 )
 enum class HabitStatus {
     DONE, SKIPPED, NONE
 }
+enum class HabitType {
+    DAILY, WEEKLY, MONTHLY, YEARLY
+}
+
 data class MonthlyHabit(
     val id: String,
     val title: String,
-    val monthStatus: MutableMap<LocalDate, HabitStatus>
+    val monthStatus: MutableMap<LocalDate, HabitStatus>,
+    val reminderTime: LocalTime? = null,
+    val reminderEnabled: Boolean = false,
+    val frequency: String = ""
 )
 data class YearlyHabit(
     val id: String,
     val title: String,
-    val completedDays: MutableSet<LocalDate>
+    val completedDays: MutableSet<LocalDate>,
+    val reminderTime: LocalTime? = null,
+    val reminderEnabled: Boolean = false,
+    val frequency: String = ""
 )
 
 data class AuthState(

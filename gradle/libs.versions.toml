@@ -1,5 +1,6 @@
 [versions]
 agp = "8.9.2"
+coreKtxVersion = "1.12.0"
 firebaseBom = "33.13.0"
 hiltAndroid = "2.49"
 hiltAndroidCompiler = "2.44"
@@ -27,9 +28,11 @@ roomRuntimeAndroid = "2.7.1"
 firebaseFirestoreKtx = "25.1.4"
 firebaseCrashlyticsBuildtools = "3.0.3"
 composeFoundation = "1.4.1"
+workRuntimeKtxVersion = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-ktx-v1120 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltNavigationCompose" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-hilt-navigation-compose-v100 = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationComposeVersion" }
@@ -39,6 +42,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomKtx" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
+androidx-work-runtime-ktx-v290 = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtxVersion" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }

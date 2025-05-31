@@ -33,9 +33,19 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
+    // 🔄 Collect weekly habits from ViewModel
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchHabitsFromFirestore(context)
+    }
+
     val habits = viewModel.weeklyHabits.collectAsState().value
     val daysOfWeek = DayOfWeek.values().toList() // Sunday to Saturday
 
@@ -45,6 +55,7 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
     val endOfWeek = today.with(DayOfWeek.SUNDAY)
     val formatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
     val weekRange = "${formatter.format(startOfWeek)} – ${formatter.format(endOfWeek)}"
+
 
     val habitColors = listOf(
         androidx.compose.ui.graphics.Color(0xFFB39DDB), // mor

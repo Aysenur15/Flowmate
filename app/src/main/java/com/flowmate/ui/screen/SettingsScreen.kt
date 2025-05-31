@@ -3,7 +3,11 @@ package com.flowmate.ui.screen
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,13 +25,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.flowmate.ui.component.MainRoute
 import com.flowmate.viewmodel.SettingsViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import android.Manifest
+import androidx.core.net.toUri
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Unit) {
@@ -49,12 +59,10 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
         Spacer(modifier = Modifier.height(16.dp))
 
         /*** 2. Notification Settings ***/
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Notifications")
-            Switch(checked = isNotificationsEnabled, onCheckedChange = {
-                viewModel.toggleNotifications(it)
-            })
-        }
+        NotificationSettingsRow(
+            isNotificationsEnabled = isNotificationsEnabled,
+            onToggle = { enabled -> viewModel.toggleNotifications(enabled) }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -118,7 +126,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
         /*** 9. Send Feedback ***/
         Button(onClick = {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:help@flowmate.com")
+                data = "mailto:help@flowmate.com".toUri()
                 putExtra(Intent.EXTRA_SUBJECT, "FlowMate Feedback")
                 putExtra(Intent.EXTRA_TEXT, "Hello, I have a problem about...")
             }
@@ -152,6 +160,46 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
         Text("Developer: FlowMate Software Team")
     }
 }
+@Composable
+fun NotificationSettingsRow(
+    isNotificationsEnabled: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+    var pendingToggle by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) onToggle(true)
+        else onToggle(false)
+
+        pendingToggle = false
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = "Notifications")
+        Switch(
+            checked = isNotificationsEnabled,
+            onCheckedChange = { isChecked ->
+                if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val permission = Manifest.permission.POST_NOTIFICATIONS
+                    val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+                    if (!granted) {
+                        pendingToggle = true
+                        permissionLauncher.launch(permission)
+                        return@Switch
+                    }
+                }
+                onToggle(isChecked)
+            }
+        )
+    }
+}
+
 
 /**
  * Get the app version name from the package manager.
