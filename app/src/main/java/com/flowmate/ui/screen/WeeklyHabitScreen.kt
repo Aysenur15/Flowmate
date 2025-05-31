@@ -68,7 +68,7 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
         Text(
             text = weekRange,
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -119,7 +119,7 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
                         val tint = when (status) {
                             HabitStatus.DONE -> color
                             HabitStatus.SKIPPED -> Color(0xFFFFC107)
-                            HabitStatus.NONE -> Color.Gray
+                            HabitStatus.NONE -> MaterialTheme.colorScheme.onSurface
                         }
                         Icon(
                             imageVector = icon,

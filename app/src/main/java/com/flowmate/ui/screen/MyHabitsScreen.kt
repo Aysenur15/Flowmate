@@ -1,6 +1,7 @@
 package com.flowmate.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,7 @@ import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MyHabitsViewModal
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 
 // 3. The MyHabitsScreen composable
@@ -79,6 +81,31 @@ fun MyHabitsScreen(
     val habitViewModel = remember { MyHabitsViewModal() }
     val scope = rememberCoroutineScope()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+    val habitColorsLight = listOf(
+        Color(0xFFB39DDB), // mor
+        Color(0xFF80CBC4), // turkuaz
+        Color(0xFFFFAB91), // turuncu
+        Color(0xFFA5D6A7), // yeşil
+        Color(0xFFFFF59D), // sarı
+        Color(0xFF90CAF9), // mavi
+        Color(0xFFE6EE9C), // açık yeşil
+        Color(0xFFFFCC80), // açık turuncu
+        Color(0xFFF48FB1), // pembe
+        Color(0xFFB0BEC5)  // gri
+    )
+    val habitColorsDark = listOf(
+        Color(0xFF5E35B1), // koyu mor
+        Color(0xFF00897B), // koyu turkuaz
+        Color(0xFFF4511E), // koyu turuncu
+        Color(0xFF388E3C), // koyu yeşil
+        Color(0xFFFBC02D), // koyu sarı
+        Color(0xFF1976D2), // koyu mavi
+        Color(0xFF689F38), // koyu açık yeşil
+        Color(0xFFFFA000), // koyu açık turuncu
+        Color(0xFFD81B60), // koyu pembe
+        Color(0xFF455A64)  // koyu gri
+    )
 
     Scaffold(
         floatingActionButton = {
@@ -136,9 +163,12 @@ fun MyHabitsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(habits) { habit ->
+                    val isDark = isSystemInDarkTheme()
+                    val colorList = if (isDark) habitColorsDark else habitColorsLight
+                    val cardBg = colorList[habit.id.hashCode().let { if (it < 0) -it else it } % colorList.size]
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = HabitCardBg),
+                        colors = CardDefaults.cardColors(containerColor = cardBg),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -164,7 +194,8 @@ fun MyHabitsScreen(
                             Text(
                                 text = habit.title,
                                 style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                color = if (isDark) Color.Black else MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.width(16.dp))
                             IconButton(onClick = {

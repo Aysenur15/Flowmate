@@ -1,6 +1,7 @@
 package com.flowmate.ui.screen
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -125,7 +126,7 @@ fun MyTasksScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.White
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text("Select Due Date")
@@ -262,9 +263,36 @@ fun MyTasksScreen(
                 .padding(padding)
         ) {
             items(taskList) { task ->
+                val isDark = isSystemInDarkTheme()
+                val taskColorsLight = listOf(
+                    Color(0xFFB39DDB), // mor
+                    Color(0xFF80CBC4), // turkuaz
+                    Color(0xFFFFAB91), // turuncu
+                    Color(0xFFA5D6A7), // yeşil
+                    Color(0xFFFFF59D), // sarı
+                    Color(0xFF90CAF9), // mavi
+                    Color(0xFFE6EE9C), // açık yeşil
+                    Color(0xFFFFCC80), // açık turuncu
+                    Color(0xFFF48FB1), // pembe
+                    Color(0xFFB0BEC5)  // gri
+                )
+                val taskColorsDark = listOf(
+                    Color(0xFF5E35B1), // koyu mor
+                    Color(0xFF00897B), // koyu turkuaz
+                    Color(0xFFF4511E), // koyu turuncu
+                    Color(0xFF388E3C), // koyu yeşil
+                    Color(0xFFFBC02D), // koyu sarı
+                    Color(0xFF1976D2), // koyu mavi
+                    Color(0xFF689F38), // koyu açık yeşil
+                    Color(0xFFFFA000), // koyu açık turuncu
+                    Color(0xFFD81B60), // koyu pembe
+                    Color(0xFF455A64)  // koyu gri
+                )
+                val colorList = if (isDark) taskColorsDark else taskColorsLight
+                val cardBg = colorList[task.id.hashCode().let { if (it < 0) -it else it } % colorList.size]
                 Card(
-                    shape = CardShape,
-                    colors = CardDefaults.cardColors(containerColor = TaskCardBg),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = cardBg),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -279,13 +307,14 @@ fun MyTasksScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = task.title,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isDark) Color.Black else MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = "Due: ${task.dueTime}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             if (task.reminderEnabled && !task.reminderTime.isNullOrBlank()) {
                                 Spacer(Modifier.height(4.dp))

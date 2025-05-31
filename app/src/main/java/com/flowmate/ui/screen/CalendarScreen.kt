@@ -102,7 +102,7 @@ fun CalendarScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = when (dow) {
                             DayOfWeek.SATURDAY -> TextAlign.End
                             DayOfWeek.SUNDAY -> TextAlign.Start
@@ -154,7 +154,7 @@ fun CalendarScreen(
                             Text(
                                 text = dayNumber.toString(),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.Black
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -163,3 +163,4 @@ fun CalendarScreen(
         }
     }
 }
+

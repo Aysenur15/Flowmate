@@ -42,7 +42,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun FlowMateNavGraph() {
+fun FlowMateNavGraph(settingsViewModel: com.flowmate.viewmodel.SettingsViewModel) {
     val navController = rememberNavController()
 
     val repository = remember {
@@ -91,7 +91,7 @@ fun FlowMateNavGraph() {
                 navController = navController,
                 startDestination = "main"
             ) {
-                mainNavGraph(navController, authViewModel, user)
+                mainNavGraph(navController, authViewModel, user, settingsViewModel)
             }
         }
     } else {
@@ -136,7 +136,8 @@ private fun NavGraphBuilder.authNavGraph(
 private fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel,
-    user: UserEntity?
+    user: UserEntity?,
+    settingsViewModel: com.flowmate.viewmodel.SettingsViewModel
 ) {
     navigation(startDestination = MainRoute.Home.route, route = "main") {
 
@@ -244,7 +245,6 @@ private fun NavGraphBuilder.mainNavGraph(
         }
 
         composable(MainRoute.Settings.route) {
-            val settingsViewModel: SettingsViewModel = viewModel()
             SettingsScreen(
                 viewModel = settingsViewModel,
                 onNavigateTo = { route ->
