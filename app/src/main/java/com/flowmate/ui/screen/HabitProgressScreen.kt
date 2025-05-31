@@ -44,6 +44,14 @@ fun HabitProgressScreen(
                 .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+        Button(
+                onClick = { selectedView = "weekly" },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedView == "weekly") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text("Weekly")
+            }
             Button(
                 onClick = { selectedView = "monthly" },
                 colors = ButtonDefaults.buttonColors(
@@ -64,6 +72,7 @@ fun HabitProgressScreen(
         }
 
         when (selectedView) {
+            "weekly" -> WeeklyHabitScreen(viewModel = weeklyViewModel)
             "monthly" -> MonthlyHabitScreen(viewModel = monthlyViewModel)
             "yearly" -> YearlyHabitScreen(viewModel = yearlyViewModel)
         }
@@ -143,29 +152,125 @@ fun MonthlyHabitScreen(viewModel: MonthlyHabitViewModel) {
 
 @Composable
 fun YearlyHabitScreen(viewModel: YearlyHabitViewModel) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.fetchHabitsFromFirestore(context)
+    }
     val year by viewModel.year.collectAsState()
     val completedDays by viewModel.completedDays.collectAsState()
     val months = (1..12).map { YearMonth.of(year, it) }
     val monthNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    val daysInLongestMonth = 31
+    val heatmapColors = listOf(
+        Color(0xFFFFBDAD), // light blue
+        Color(0xFF90CAF9), // blue
+        Color(0xFF1976D2), // dark blue
+        Color(0xFFA5D6A7), // green
+        Color(0xFFFFF59D), // yellow
+        Color(0xFFFFAB91), // orange
+        Color(0xFFF48FB1), // pink
+        Color(0xFFB39DDB), // purple
+        Color(0xFFB0BEC5)  // grey
+    )
 
-    Column(modifier = Modifier.fillMaxSize().padding(8.dp).verticalScroll(rememberScrollState())) {
-        val context = LocalContext.current
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("<", modifier = Modifier.clickable { viewModel.previousYear(context) }, style = MaterialTheme.typography.titleLarge)
-            Text(year.toString(), style = MaterialTheme.typography.headlineSmall)
-            Text(">", modifier = Modifier.clickable { viewModel.nextYear(context) }, style = MaterialTheme.typography.titleLarge)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // Yıl başlığı ve ileri/geri butonları
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "<",
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable { viewModel.previousYear(context) },
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = year.toString(),
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text(
+                text = ">",
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable { viewModel.nextYear(context) },
+                style = MaterialTheme.typography.titleLarge
+            )
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
+        // Her ay için başarı oranı progress bar ve heatmap grid
         months.forEachIndexed { monthIndex, month ->
-            val days = (1..month.lengthOfMonth()).map { LocalDate.of(year, month.monthValue, it) }
+            val days = (1..month.lengthOfMonth()).map { day ->
+                LocalDate.of(year, month.monthValue, day)
+            }
             val completedInMonth = days.count { completedDays.contains(it) }
-            val progress = completedInMonth / days.size.toFloat()
-
-            Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                Text("${monthNames[monthIndex]} - %${(progress * 100).toInt()}", style = MaterialTheme.typography.titleMedium)
-                LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().height(8.dp))
+            val progress = if (days.isNotEmpty()) completedInMonth / days.size.toFloat() else 0f
+            // Ay başlığı ve progress bar
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                Text(
+                    text = monthNames[monthIndex],
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.width(40.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(8.dp)
+                        .background(
+                            color = heatmapColors[monthIndex % heatmapColors.size].copy(alpha = 0.2f),
+                            shape = MaterialTheme.shapes.small
+                        )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(progress)
+                            .height(8.dp)
+                            .background(
+                                color = heatmapColors[monthIndex % heatmapColors.size],
+                                shape = MaterialTheme.shapes.small
+                            )
+                    )
+                }
+                Text(
+                    text = "%${(progress * 100).toInt()}",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            // Heatmap grid: 31 günlük kutular
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                (1..daysInLongestMonth).forEach { dayNum ->
+                    val date = if (dayNum <= days.size) days[dayNum - 1] else null
+                    val isCompleted = date != null && completedDays.contains(date)
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .background(
+                                color = when {
+                                    date == null -> Color.Transparent
+                                    isCompleted -> heatmapColors[monthIndex % heatmapColors.size]
+                                    else -> heatmapColors[monthIndex % heatmapColors.size].copy(alpha = 0.15f)
+                                },
+                                shape = MaterialTheme.shapes.small
+                            )
+                    )
+                }
             }
         }
     }

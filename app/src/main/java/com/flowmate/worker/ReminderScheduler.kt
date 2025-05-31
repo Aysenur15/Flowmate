@@ -21,7 +21,6 @@ object ReminderScheduler {
     {
         if (!isEnabled) return
 
-        //val delay = Duration.between(LocalDateTime.now(), targetTime).toMillis()
         val delay = Duration.between(LocalDateTime.now(), targetTime).toMillis()
         if (delay > 0) {
             ReminderWorker.enqueueReminder(context, title, delay, type, time)

@@ -56,26 +56,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.flowmate.repository.HabitRepository
 import com.flowmate.ui.component.Habit
 import com.flowmate.ui.component.SmartSuggestion
+import com.flowmate.ui.theme.HabitCardBg
 import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
+import com.flowmate.viewmodel.MonthlyHabitViewModel
 import com.flowmate.viewmodel.MyHabitsViewModal
+import com.flowmate.viewmodel.YearlyHabitViewModel
+import com.flowmate.viewmodel.WeeklyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import com.flowmate.worker.ReminderScheduler
-import com.flowmate.ui.component.HabitType
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.LocalDateTime
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.flowmate.viewmodel.MonthlyHabitViewModel
-import com.flowmate.viewmodel.YearlyHabitViewModel
-
-
-
+import kotlin.math.absoluteValue
 
 
 // 3. The MyHabitsScreen composable
@@ -263,10 +258,28 @@ fun MyHabitsWithModalSheet(
     onAddHabit: (Habit) -> Unit,
     navController: NavController
 ) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val weeklyHabitViewModel: WeeklyHabitViewModel = viewModel(
+        factory = WeeklyHabitViewModelFactory(HabitRepository(), userId ?: "")
+    )
+    val monthlyHabitViewModel: MonthlyHabitViewModel = viewModel(
+        factory = MonthlyHabitViewModelFactory(HabitRepository(), userId ?: "")
+    )
+    val yearlyHabitViewModel: YearlyHabitViewModel = viewModel(
+        factory = YearlyHabitViewModelFactory(HabitRepository(), userId ?: "")
+    )
+
+    LaunchedEffect(key1 = Unit) {
+        if (userId != null) {
+            weeklyHabitViewModel.fetchHabitsFromFirestore(navController.context)
+            monthlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
+            yearlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
+        }
+    }
     val habitRepository = remember { HabitRepository() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
 
     var habitList by remember { mutableStateOf<List<Habit>>(emptyList()) }
 
@@ -461,41 +474,9 @@ fun MyHabitsWithModalSheet(
                                 scope.launch {
                                     try {
                                         habitRepository.addHabitToFirestore(userId, habit)
-
-                                        // 🟢 Reminder planlama
-                                        if (reminderEnabled && !reminderTime.isNullOrBlank()) {
-                                            val parsedTime = try {
-                                                LocalTime.parse(reminderTime)
-                                            } catch (e: Exception) {
-                                                null
-                                            }
-
-                                            parsedTime?.let {
-                                                val type = when (frequencyPeriod.lowercase()) {
-                                                    "day" -> HabitType.DAILY
-                                                    "week" -> HabitType.WEEKLY
-                                                    "month" -> HabitType.MONTHLY
-                                                    "year" -> HabitType.YEARLY
-                                                    else -> HabitType.DAILY
-                                                }
-
-                                                val now = LocalDateTime.of(LocalDate.now(), it)
-
-                                                ReminderScheduler.scheduleReminderIfEnabled(
-                                                    context = navController.context, // ✅ Context burada mevcut
-                                                    title = habit.title,
-                                                    targetTime = now,
-                                                    isEnabled = true,
-                                                    type = type,
-                                                    time = it
-                                                )
-                                            }
-                                        }
-
                                     } catch (e: Exception) {
-                                        // log or toast error
-                                    }
 
+                                    }
                                     onAddHabit(habit)
                                     newHabitName = ""
                                     hardnessLevel = ""
@@ -524,6 +505,15 @@ fun MyHabitsWithModalSheet(
         navController = navController
     )
 
+
+}
+class WeeklyHabitViewModelFactory(
+    private val repository: HabitRepository,
+    private val userId: String
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return WeeklyHabitViewModel(repository, userId) as T
+    }
 }
 class MonthlyHabitViewModelFactory(
     private val repository: HabitRepository,
@@ -541,5 +531,3 @@ class YearlyHabitViewModelFactory(
         return YearlyHabitViewModel(repository, userId) as T
     }
 }
-
-
