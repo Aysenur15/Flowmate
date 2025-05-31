@@ -174,10 +174,25 @@ private fun NavGraphBuilder.mainNavGraph(
         }
 
         composable("habitProgress") {
-            val weeklyViewModel = remember { WeeklyHabitViewModel() }
-            val monthlyViewModel = remember { MonthlyHabitViewModel() }
-            val yearlyViewModel = remember { YearlyHabitViewModel() }
+            val habitRepository = remember { com.flowmate.repository.HabitRepository() }
+            val userId = user?.userId ?: ""
+            val weeklyViewModel = remember { WeeklyHabitViewModel(habitRepository, userId) }
+            val monthlyViewModel = remember { MonthlyHabitViewModel(habitRepository, userId) }
+            val yearlyViewModel = remember { YearlyHabitViewModel(habitRepository, userId) }
 
+            HabitProgressScreen(
+                weeklyViewModel = weeklyViewModel,
+                monthlyViewModel = monthlyViewModel,
+                yearlyViewModel = yearlyViewModel
+            )
+        }
+
+        composable(MainRoute.HabitProgress.route) {
+            val habitRepository = remember { com.flowmate.repository.HabitRepository() }
+            val userId = user?.userId ?: ""
+            val weeklyViewModel = remember { WeeklyHabitViewModel(habitRepository, userId) }
+            val monthlyViewModel = remember { MonthlyHabitViewModel(habitRepository, userId) }
+            val yearlyViewModel = remember { YearlyHabitViewModel(habitRepository, userId) }
             HabitProgressScreen(
                 weeklyViewModel = weeklyViewModel,
                 monthlyViewModel = monthlyViewModel,

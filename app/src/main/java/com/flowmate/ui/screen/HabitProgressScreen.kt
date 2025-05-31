@@ -44,11 +44,6 @@ fun HabitProgressScreen(weeklyViewModel: WeeklyHabitViewModel,
     var selectedView by remember { mutableStateOf("weekly") }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            text = "Habit Progress",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
 
         // View Switcher Buttons
         Row(
@@ -99,13 +94,35 @@ fun MonthlyHabitScreen(viewModel: MonthlyHabitViewModel) {
     val habits = viewModel.monthlyHabits.collectAsState().value
     val dateFormatter = DateTimeFormatter.ofPattern("d")
 
+    // Renk paleti
+    val habitColors = listOf(
+        androidx.compose.ui.graphics.Color(0xFFB39DDB), // mor
+        androidx.compose.ui.graphics.Color(0xFF80CBC4), // turkuaz
+        androidx.compose.ui.graphics.Color(0xFFFFAB91), // turuncu
+        androidx.compose.ui.graphics.Color(0xFFA5D6A7), // yeşil
+        androidx.compose.ui.graphics.Color(0xFFFFF59D), // sarı
+        androidx.compose.ui.graphics.Color(0xFF90CAF9), // mavi
+        androidx.compose.ui.graphics.Color(0xFFE6EE9C), // açık yeşil
+        androidx.compose.ui.graphics.Color(0xFFFFCC80), // açık turuncu
+        androidx.compose.ui.graphics.Color(0xFFF48FB1), // pembe
+        androidx.compose.ui.graphics.Color(0xFFB0BEC5)  // gri
+    )
+
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        habits.forEach { habit ->
+        // Şu anki ayı başlık olarak göster
+                val currentMonth = YearMonth.now().month
+                Text(
+                    text = "$currentMonth Habits",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+        habits.forEachIndexed { index, habit ->
+            val color = habitColors[index % habitColors.size]
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(color.copy(alpha = 0.25f), shape = MaterialTheme.shapes.medium)
                     .padding(12.dp)
             ) {
                 Text(
@@ -135,7 +152,7 @@ fun MonthlyHabitScreen(viewModel: MonthlyHabitViewModel) {
                                     .size(24.dp)
                                     .background(
                                         color = when (status) {
-                                            HabitStatus.DONE -> MaterialTheme.colorScheme.primary
+                                            HabitStatus.DONE -> color
                                             HabitStatus.SKIPPED -> MaterialTheme.colorScheme.error
                                             HabitStatus.NONE -> MaterialTheme.colorScheme.outline
                                         },
@@ -212,4 +229,5 @@ fun YearlyHabitScreen(viewModel: YearlyHabitViewModel) {
         }
     }
 }
+
 

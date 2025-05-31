@@ -2,6 +2,8 @@ package com.flowmate.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowmate.repository.HabitRepository
+import com.flowmate.ui.component.Habit
 import com.flowmate.ui.component.HabitStatus
 import com.flowmate.ui.component.WeeklyHabit
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +14,7 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-class WeeklyHabitViewModel : ViewModel() {
+class WeeklyHabitViewModel(private val repository: HabitRepository, private val userId: String) : ViewModel() {
 
     private val _weeklyHabits = MutableStateFlow<List<WeeklyHabit>>(emptyList())
     val weeklyHabits: StateFlow<List<WeeklyHabit>> = _weeklyHabits.asStateFlow()
@@ -21,29 +23,32 @@ class WeeklyHabitViewModel : ViewModel() {
     private val currentWeekDays = DayOfWeek.values().toList()
 
     init {
-        loadStubData()
+        fetchHabitsFromFirestore()
     }
 
-    private fun loadStubData() {
-        val defaultStatus = currentWeekDays.associateWith { HabitStatus.NONE }
-
-        _weeklyHabits.value = listOf(
-            WeeklyHabit(
-                id = "habit1",
-                title = "Read",
-                weekStatus = defaultStatus.toMutableMap()
-            ),
-            WeeklyHabit(
-                id = "habit2",
-                title = "Exercise",
-                weekStatus = defaultStatus.toMutableMap()
-            ),
-            WeeklyHabit(
-                id = "habit3",
-                title = "Sleep Early",
-                weekStatus = defaultStatus.toMutableMap()
-            )
+    private fun habitToWeeklyHabit(habit: Habit): WeeklyHabit {
+        // Haftalık statüleri oluşturmak için örnek bir dönüşüm
+        val weekStatus = DayOfWeek.values().associateWith { day ->
+            if (habit.completedDates
+                    .map { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate() }
+                    .contains(LocalDate.now().with(day))) {
+                HabitStatus.DONE
+            } else {
+                HabitStatus.NONE
+            }
+        }.toMutableMap()
+        return WeeklyHabit(
+            id = habit.id,
+            title = habit.title,
+            weekStatus = weekStatus
         )
+    }
+
+    fun fetchHabitsFromFirestore() {
+        viewModelScope.launch {
+            val habits = repository.getHabitsFromFirestore(userId)
+            _weeklyHabits.value = habits.map { habitToWeeklyHabit(it) }
+        }
     }
 
     fun updateHabitStatus(habitId: String, day: DayOfWeek, status: HabitStatus) {

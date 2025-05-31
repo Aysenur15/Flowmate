@@ -17,6 +17,7 @@ sealed class MainRoute(val route: String, val title: String) {
     data object Achievements : MainRoute("achievements", "Achievements")
     data object Settings : MainRoute("settings", "Settings")
     data object EditCredentials : MainRoute("edit_credentials", "Edit Credentials")
+    data object HabitProgress : MainRoute("habit_progress", "Habit Progress")
 
     companion object {
         fun fromRoute(route: String?): MainRoute {
