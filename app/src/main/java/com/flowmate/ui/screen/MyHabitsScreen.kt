@@ -61,16 +61,14 @@ import androidx.navigation.NavController
 import com.flowmate.repository.HabitRepository
 import com.flowmate.ui.component.Habit
 import com.flowmate.ui.component.SmartSuggestion
-import com.flowmate.ui.theme.HabitCardBg
 import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MonthlyHabitViewModel
 import com.flowmate.viewmodel.MyHabitsViewModal
-import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.flowmate.viewmodel.WeeklyHabitViewModel
+import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import kotlin.math.absoluteValue
 
 
 // 3. The MyHabitsScreen composable
@@ -221,7 +219,8 @@ fun MyHabitsScreen(
                             IconButton(onClick = {
                                 scope.launch {
                                     habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
-                                    //habitViewModel.refreshHabits()
+                                    habitRepository.getHabitsFromFirestore(userId.toString())
+
                                 }
                             }) {
                                 val todayMillis = java.time.LocalDate.now()
@@ -474,6 +473,7 @@ fun MyHabitsWithModalSheet(
                                 scope.launch {
                                     try {
                                         habitRepository.addHabitToFirestore(userId, habit)
+                                        habitList = habitRepository.getHabitsFromFirestore(userId) // <-- Ekleme sonrası listeyi güncelle
                                     } catch (e: Exception) {
 
                                     }

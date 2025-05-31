@@ -48,10 +48,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.flowmate.repository.TaskRepository
 import com.flowmate.ui.component.TaskItem
-import com.flowmate.ui.theme.CardShape
 import com.flowmate.ui.theme.DoneColor
 import com.flowmate.ui.theme.PendingColor
-import com.flowmate.ui.theme.TaskCardBg
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -224,6 +222,7 @@ fun MyTasksScreen(
                                 scope.launch {
                                     try {
                                         taskRepository.addTaskToFirestore(userId = userId.toString(), task = newTask)
+                                        taskRepository.getTasksFromFirestore(userId.toString())
                                     }
                                     catch ( e: Exception) {
                                         e.printStackTrace()
@@ -335,6 +334,7 @@ fun MyTasksScreen(
                                             taskId = task.id,
                                             isCompleted = !task.isCompleted
                                         )
+                                        taskRepository.getTasksFromFirestore(userId)
                                     }
                                 }
                             },
