@@ -8,6 +8,7 @@ plugins {
     id("com.google.gms.google-services")
     kotlin("kapt")
 }
+val geminiApiKey: String = project.findProperty("GEMINI_API_KEY") as? String ?: ""
 
 android {
     namespace = "com.flowmate"
@@ -21,6 +22,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -32,17 +39,17 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        compose = true
-    }
 }
+
 
 dependencies {
 
@@ -67,6 +74,7 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.generativeai)
 
 
     testImplementation(libs.junit)
@@ -80,6 +88,8 @@ dependencies {
     kapt(libs.androidx.room.compiler)
     implementation (libs.androidx.work.runtime.ktx.v290) // for WorkManager
     implementation (libs.androidx.core.ktx.v1120)
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
 
 

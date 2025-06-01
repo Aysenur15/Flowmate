@@ -70,6 +70,26 @@ fun ReportsScreen(
 
     val reportDate = "2025-05-28"
 
+    // Kullanıcının alışkanlıklarını Firestore'dan çekip AI önerisi al
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            val habits = mutableListOf<Pair<String, Int>>()
+            val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            db.collection("users")
+                .document(userId)
+                .collection("habits")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    snapshot.documents.forEach { doc ->
+                        val title = doc.getString("title") ?: return@forEach
+                        val level = (doc.get("difficultyLevel") as? Long)?.toInt() ?: 1
+                        habits.add(title to level)
+                    }
+                    viewModel.fetchAiSuggestions(userName = userId, habits = habits)
+                }
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.fetchHabitDurationsForDate(userId = userId.toString(), date = reportDate)
         viewModel.fetchHabitTimeSegments(userId = userId.toString(), date = reportDate)
@@ -146,13 +166,25 @@ fun ReportsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    StyledAiInsights(
-                        insights = listOf(
-                            AiSuggestion("🌞", "Best Time", "You are most productive in the morning."),
-                            AiSuggestion("🧠", "Focus Strategy", "Try scheduling harder habits in the afternoon."),
-                            AiSuggestion("🎉", "Streak Tracker", "You've built a 10-day streak!")
-                        )
-                    )
+                    // AI'dan gelen önerileri 5 kart olarak göster
+                    val aiSuggestionsRaw by viewModel.aiSuggestions.collectAsState()
+                    val aiSuggestionsList = aiSuggestionsRaw
+                        .replace("**", "") // Gemini'dan gelen sonuçta ** işaretlerini sil
+                        .split("\n")
+                        .filter { it.isNotBlank() }
+                        .take(5)
+                        .mapIndexed { idx, suggestion ->
+                            val parts = suggestion.split(":", limit = 2)
+                            val title = parts.getOrNull(0)?.trim() ?: "Suggestion ${idx+1}"
+                            val message = parts.getOrNull(1)?.trim() ?: suggestion.trim()
+                            val icons = listOf("💡", "🔥", "🌱", "🚀", "⭐")
+                            com.flowmate.ui.component.AiSuggestion(
+                                icon = icons.getOrElse(idx) { "💡" },
+                                title = title,
+                                message = message
+                            )
+                        }
+                    StyledAiInsights(insights = aiSuggestionsList)
                 }
             }
 
