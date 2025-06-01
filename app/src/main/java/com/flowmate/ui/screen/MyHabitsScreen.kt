@@ -27,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -39,12 +40,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +59,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.flowmate.repository.HabitRepository
@@ -64,12 +69,15 @@ import com.flowmate.ui.component.MonthlyHabitViewModelFactory
 import com.flowmate.ui.component.SmartSuggestion
 import com.flowmate.ui.component.WeeklyHabitViewModelFactory
 import com.flowmate.ui.component.YearlyHabitViewModelFactory
+import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MonthlyHabitViewModel
+import com.flowmate.viewmodel.MyHabitsViewModal
 import com.flowmate.viewmodel.WeeklyHabitViewModel
 import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +99,9 @@ fun MyHabitsWithModalSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val habitsViewModel: MyHabitsViewModal = viewModel()
+    val parsedSuggestions by habitsViewModel.parsedSuggestions.collectAsState()
+
 
     var habitList by remember { mutableStateOf<List<Habit>>(emptyList()) }
     var editingHabit by remember { mutableStateOf<Habit?>(null) }
@@ -113,6 +124,8 @@ fun MyHabitsWithModalSheet(
             monthlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
             yearlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
             habitList = habitRepository.getHabitsFromFirestore(userId)
+            habitsViewModel.loadUserHabits(userId)
+            habitsViewModel.fetchSuggestions(userId)
         }
     }
 
@@ -139,7 +152,7 @@ fun MyHabitsWithModalSheet(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (suggestions.isNotEmpty()) {
+            if (parsedSuggestions.isNotEmpty()) {
                 Text(
                     text = "Suggestions for you",
                     style = MaterialTheme.typography.titleMedium,
@@ -149,7 +162,7 @@ fun MyHabitsWithModalSheet(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(suggestions) { suggestion ->
+                    items(parsedSuggestions) { suggestion ->
                         Card(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.size(width = 200.dp, height = 100.dp)
