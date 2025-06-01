@@ -21,6 +21,7 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import com.flowmate.viewmodel.WeeklyHabitViewModel
 
+// This screen displays the habit progress for weekly, monthly, and yearly views
 @Composable
 fun HabitProgressScreen(
     weeklyViewModel: WeeklyHabitViewModel,
@@ -28,7 +29,7 @@ fun HabitProgressScreen(
     yearlyViewModel: YearlyHabitViewModel
 ) {
     val context = LocalContext.current
-
+// Fetch habits from Firestore when the screen is launched
     LaunchedEffect(Unit) {
         weeklyViewModel.fetchHabitsFromFirestore(context)
         monthlyViewModel.fetchHabitsFromFirestore(context)
@@ -78,7 +79,7 @@ fun HabitProgressScreen(
         }
     }
 }
-
+// Weekly Habit Screen
 @Composable
 fun MonthlyHabitScreen(viewModel: MonthlyHabitViewModel) {
     val habits by viewModel.monthlyHabits.collectAsState()
@@ -88,7 +89,7 @@ fun MonthlyHabitScreen(viewModel: MonthlyHabitViewModel) {
         Color(0xFFFFF59D), Color(0xFF90CAF9), Color(0xFFE6EE9C), Color(0xFFFFCC80),
         Color(0xFFF48FB1), Color(0xFFB0BEC5)
     )
-
+    // Display the monthly habits in a scrollable column
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         val currentMonth = YearMonth.now().month
         Text(
@@ -96,7 +97,7 @@ fun MonthlyHabitScreen(viewModel: MonthlyHabitViewModel) {
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(vertical = 8.dp)
         )
-
+        // Iterate through each habit and display its progress
         habits.forEachIndexed { index, habit ->
             val color = habitColors[index % habitColors.size]
             val totalDays = habit.monthStatus.size
@@ -149,7 +150,7 @@ fun MonthlyHabitScreen(viewModel: MonthlyHabitViewModel) {
         }
     }
 }
-
+// Yearly Habit Screen
 @Composable
 fun YearlyHabitScreen(viewModel: YearlyHabitViewModel) {
     val context = LocalContext.current
@@ -179,7 +180,7 @@ fun YearlyHabitScreen(viewModel: YearlyHabitViewModel) {
             .padding(8.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Yıl başlığı ve ileri/geri butonları
+        // Year selection row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -205,14 +206,14 @@ fun YearlyHabitScreen(viewModel: YearlyHabitViewModel) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        // Her ay için başarı oranı progress bar ve heatmap grid
+        // Display each month's progress
         months.forEachIndexed { monthIndex, month ->
             val days = (1..month.lengthOfMonth()).map { day ->
                 LocalDate.of(year, month.monthValue, day)
             }
             val completedInMonth = days.count { completedDays.contains(it) }
             val progress = if (days.isNotEmpty()) completedInMonth / days.size.toFloat() else 0f
-            // Ay başlığı ve progress bar
+            //Month header with progress bar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 4.dp)
@@ -247,7 +248,7 @@ fun YearlyHabitScreen(viewModel: YearlyHabitViewModel) {
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
-            // Heatmap grid: 31 günlük kutular
+            // Heatmap grid
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

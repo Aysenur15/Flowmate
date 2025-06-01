@@ -3,6 +3,7 @@ package com.flowmate
 import android.app.Application
 import com.flowmate.data.AppDatabase
 
+// FlowMateApp is the main application class for the FlowMate app.
 class FlowMateApp : Application() {
 
     companion object {
@@ -13,21 +14,4 @@ class FlowMateApp : Application() {
         super.onCreate()
         database = AppDatabase.DatabaseBuilder.getInstance(applicationContext)
     }
-    /*
-    override fun onCreate() {
-        super.onCreate()
-        // Room DB oluştur
-        val db = Room.databaseBuilder(
-            applicationContext,
-            FlowMateDatabase::class.java,
-            "flowmate.db"
-        ).build()
-
-        // Repository oluştur
-        val authRepository = AuthRepository(
-            userDao = db.userDao(),
-            auth = FirebaseAuth.getInstance(),
-            firestore = FirebaseFirestore.getInstance()
-        )
-      }-*/
 }

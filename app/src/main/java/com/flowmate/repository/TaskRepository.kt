@@ -8,7 +8,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class TaskRepository @Inject constructor() {
-
+    // Task repository for managing tasks
     private val _tasks = MutableStateFlow<List<TaskItem>>(emptyList())
     val tasks: Flow<List<TaskItem>> = _tasks
 
@@ -40,13 +40,13 @@ class TaskRepository @Inject constructor() {
     fun addTask(task: TaskItem) {
         _tasks.value += task
     }
-
+    //Firestore methods for task management
     suspend fun addTaskToFirestore(userId: String, task: TaskItem) {
         val taskMap = hashMapOf(
             "taskId" to task.id,
             "userId" to userId,
             "title" to task.title,
-            "deadline" to task.dueTime, // string ise Firestore'da string olarak saklanır
+            "deadline" to task.dueTime,
             "priority" to (0),
             "isCompleted" to task.isCompleted,
             "createdAt" to System.currentTimeMillis()
@@ -58,7 +58,7 @@ class TaskRepository @Inject constructor() {
             .set(taskMap)
             .await()
     }
-
+    // Fetch tasks from Firestore for a specific user
     suspend fun getTasksFromFirestore(userId: String): List<TaskItem> {
         val snapshot = firestore.collection("users")
             .document(userId)
@@ -71,12 +71,12 @@ class TaskRepository @Inject constructor() {
                 title = doc.getString("title") ?: "",
                 dueTime = doc.getString("deadline") ?: "",
                 isCompleted = doc.getBoolean("isCompleted") ?: false,
-                reminderEnabled = false, // Firestore'dan çekmek isterseniz ekleyin
-                reminderTime = null // Firestore'dan çekmek isterseniz ekleyin
+                reminderEnabled = false,
+                reminderTime = null
             )
         }
     }
-
+    //Update task
     suspend fun updateTaskCompletionInFirestore(userId: String, taskId: String, isCompleted: Boolean) {
         val taskRef = firestore.collection("users")
             .document(userId)
@@ -84,7 +84,7 @@ class TaskRepository @Inject constructor() {
             .document(taskId)
         taskRef.update("isCompleted", isCompleted).await()
     }
-
+    // Delete a task from Firestore
     suspend fun deleteTaskFromFirestore(userId: String, taskId: String) {
         firestore.collection("users")
             .document(userId)

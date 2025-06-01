@@ -19,6 +19,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+// ViewModel for managing weekly habits, fetching from Firestore, and scheduling reminders.
 class WeeklyHabitViewModel(
     private val repository: HabitRepository,
     private val userId: String
@@ -29,6 +30,7 @@ class WeeklyHabitViewModel(
 
     private val currentWeekDays = DayOfWeek.values().toList()
 
+    // Fetch habits from Firestore and schedule reminders for weekly habits.
     fun fetchHabitsFromFirestore(context: Context) {
         viewModelScope.launch {
             val habits = repository.getHabitsFromFirestore(userId)
@@ -62,7 +64,7 @@ class WeeklyHabitViewModel(
             _weeklyHabits.value = result
         }
     }
-
+    // Fetch habits for a specific week and schedule reminders accordingly.
     fun fetchHabitsForWeek(context: Context, weekStart: LocalDate, weekEnd: LocalDate) {
         viewModelScope.launch {
             val habits = repository.getHabitsFromFirestore(userId)
@@ -93,7 +95,7 @@ class WeeklyHabitViewModel(
             _weeklyHabits.value = result
         }
     }
-
+    // Convert Habit to WeeklyHabit for the current week.
     private fun habitToWeeklyHabit(habit: Habit): WeeklyHabit {
         val completedDates = habit.completedDates.map {
             java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
@@ -110,7 +112,7 @@ class WeeklyHabitViewModel(
             weekStatus = weekStatus
         )
     }
-
+    // Convert Habit to WeeklyHabit for a specific week start date.
     private fun habitToWeeklyHabitForWeek(habit: Habit, weekStart: LocalDate): WeeklyHabit {
         val completedDates = habit.completedDates.map {
             java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
@@ -145,18 +147,18 @@ class WeeklyHabitViewModel(
             list.map { it.copy(weekStatus = resetStatus.toMutableMap()) }
         }
     }
-
+    // Reset the status of a specific habit for the current week.
     private fun pickRandomWeekDays(count: Int): List<DayOfWeek> {
         val allDays = DayOfWeek.values().toList()
         return allDays.shuffled().take(count.coerceAtMost(7))
     }
-
+    // Get the dates for the current week based on the provided days of the week.
     private fun getDatesForThisWeek(days: List<DayOfWeek>): List<LocalDate> {
         val today = LocalDate.now()
         val startOfWeek = today.with(DayOfWeek.MONDAY)
         return days.map { startOfWeek.with(it) }
     }
-
+    // Get the dates for a specific week start date based on the provided days of the week.
     private fun getDatesForThisWeek(days: List<DayOfWeek>, weekStart: LocalDate): List<LocalDate> {
         return days.map { weekStart.with(it) }
     }

@@ -17,9 +17,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,7 +28,7 @@ import com.flowmate.ui.component.MainRoute
 import com.flowmate.ui.component.getTodayQuote
 import com.flowmate.ui.theme.ButtonShape
 
-
+// HomeScreen composable function that display
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -63,7 +63,7 @@ fun HomeScreen(
                 .padding(vertical = 12.dp),
             elevation = CardDefaults.cardElevation(4.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer // or any color you like
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -71,7 +71,7 @@ fun HomeScreen(
                     text = "\"$quote\"",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // ensure readable contrast
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -123,7 +123,7 @@ fun HomeScreen(
                 Button(
                     onClick = { onNavigateTo(screen) },
                     shape = ButtonShape,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB39DDB)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)

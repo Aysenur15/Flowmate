@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,12 +37,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.flowmate.ui.component.Habit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+// A screen for a chronometer that allows users to track time spent on habits
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChronometerScreen(
@@ -102,16 +105,22 @@ fun ChronometerScreen(
                     onClick = {
                         if (isRunning) {
                             isRunning = false
-                            showHabitDialog = true // Kronometre durunca dialog aç
+                            showHabitDialog = true
                         } else {
                             isRunning = true
                         }
                     },
-                    modifier = Modifier.weight(1f)
+
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF7B55C2),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.weight(1f),
                 ) {
                     Icon(
                         imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isRunning) "Pause" else "Start"
+
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(if (isRunning) "Pause" else "Start")
@@ -121,6 +130,10 @@ fun ChronometerScreen(
                 OutlinedButton(
                     onClick = { laps = listOf(elapsed) + laps },
                     enabled = isRunning,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color(0xFF7B55C2)
+                    ),
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.Flag, contentDescription = "Lap")
@@ -128,7 +141,7 @@ fun ChronometerScreen(
                     Text("Lap")
                 }
 
-                // Reset button (only when stopped and time > 0)
+                // Reset button
                 OutlinedButton(
                     onClick = {
                         isRunning = false
@@ -137,6 +150,10 @@ fun ChronometerScreen(
                         laps = emptyList()
                     },
                     enabled = !isRunning && accumulated > 0L,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color(0xFF7B55C2)
+                    ),
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.RestartAlt, contentDescription = "Reset")
@@ -167,7 +184,7 @@ fun ChronometerScreen(
                 }
             }
 
-            // Habit seçme ve log kaydetme dialogu
+            // Habit dialog for saving time
             if (showHabitDialog) {
                 AlertDialog(
                     onDismissRequest = { showHabitDialog = false },
@@ -207,9 +224,9 @@ fun ChronometerScreen(
                             onClick = {
                                 if (selectedHabitId != null) {
                                     scope.launch {
-                                        // Tarihi string olarak (örn: yyyy-MM-dd) formatla
+                                        // Convert the time format to a date string
                                         val dateStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(startTime))
-                                        val minutes = (elapsed / 60000).toInt().coerceAtLeast(1) // En az 1 dakika
+                                        val minutes = (elapsed / 60000).toInt().coerceAtLeast(1)
                                         com.flowmate.repository.HabitRepository().addHabitTimeToFirestore(
                                             userId = userId,
                                             habitId = selectedHabitId!!,
@@ -235,7 +252,7 @@ fun ChronometerScreen(
         }
     }
 }
-
+// Function to format milliseconds into a readable time string
 @Composable
 private fun formatTime(ms: Long): String {
     val centis = (ms / 10) % 100

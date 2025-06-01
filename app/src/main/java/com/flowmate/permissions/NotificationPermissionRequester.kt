@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 
 @Composable
 fun NotificationPermissionRequester(
+    // Request permission to post notifications on Android 13 and above
     showRequest: Boolean = true,
     onGranted: () -> Unit = {},
     onDenied: () -> Unit = {}
@@ -28,6 +29,7 @@ fun NotificationPermissionRequester(
     }
 
     LaunchedEffect(showRequest) {
+        // Only request permission if showRequest is true
         if (!showRequest) return@LaunchedEffect
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

@@ -2,7 +2,7 @@ package com.flowmate.ui.component
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-
+// Quotes for daily motivation
 val dailyQuotes = listOf(
     "Small daily improvements are the key to staggering long-term results." to "James Clear",
     "Your future is created by what you do today, not tomorrow." to "Robert Kiyosaki",
@@ -36,7 +36,7 @@ val dailyQuotes = listOf(
     "What you do every day matters more than what you do once in a while." to "Gretchen Rubin"
 )
 
-
+// Function to get a quote for a specific date
 fun getQuoteForDate(date: LocalDate): Pair<String, String> {
     val baseDate = LocalDate.of(2025, 1, 1)
     val daysSinceStart = ChronoUnit.DAYS.between(baseDate, date)

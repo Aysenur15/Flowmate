@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,13 +43,13 @@ import com.flowmate.viewmodel.ReportsViewModel
 import com.flowmate.viewmodel.TimerStatsViewModel
 import com.google.firebase.auth.FirebaseAuth
 
-// 1. Model for a detailed report entry (could be a chart, table, etc.)
+// Data class to represent a report entry
 data class ReportEntry(
     val title: String,
     val description: String
 )
 
-// 2. Reports screen composable
+// Reports screen composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsScreen(
@@ -70,7 +71,7 @@ fun ReportsScreen(
 
     val reportDate = "2025-05-28"
 
-    // Kullanıcının alışkanlıklarını Firestore'dan çekip AI önerisi al
+    // Fetch AI suggestions based on user's habits
     LaunchedEffect(userId) {
         if (userId != null) {
             val habits = mutableListOf<Pair<String, Int>>()
@@ -109,7 +110,7 @@ fun ReportsScreen(
         ) {
             Spacer(Modifier.height(8.dp))
 
-            // ✅ Weekly pie chart (7-day summary)
+            // Header with report date
             if (habitData.isNotEmpty()) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -120,7 +121,7 @@ fun ReportsScreen(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
-            // ✅ Time bar chart (daily/weekly/monthly)
+            // Progress bars for weekly, monthly, and yearly
             HabitTimeBarChart(
                 segments = timeSegments,
                 selectedRange = selectedRange,
@@ -129,7 +130,7 @@ fun ReportsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ✅ Habit consistency grid and difficulty breakdown
+            // Report title
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -154,7 +155,7 @@ fun ReportsScreen(
                             .padding(bottom = 8.dp)
                     )
 
-                    // ✅ Dynamic breakdown using Firestore data
+                    // Display habit difficulty breakdown graph
                     HabitDifficultyBreakdown(userId = userId.toString())
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -166,10 +167,10 @@ fun ReportsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // AI'dan gelen önerileri 5 kart olarak göster
+                    //Show AI insights
                     val aiSuggestionsRaw by viewModel.aiSuggestions.collectAsState()
                     val aiSuggestionsList = aiSuggestionsRaw
-                        .replace("**", "") // Gemini'dan gelen sonuçta ** işaretlerini sil
+                        .replace("**", "") // Remove markdown formatting
                         .split("\n")
                         .filter { it.isNotBlank() }
                         .take(5)
@@ -188,7 +189,7 @@ fun ReportsScreen(
                 }
             }
 
-            // ✅ Optional report cards at bottom
+            // Optional report cards at bottom
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -198,6 +199,7 @@ fun ReportsScreen(
                         onClick = { onEntryClick(entry) },
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.fillMaxWidth()
+                        .background(Color(0xFFF6C6B9))
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Text(entry.title, style = MaterialTheme.typography.titleMedium)

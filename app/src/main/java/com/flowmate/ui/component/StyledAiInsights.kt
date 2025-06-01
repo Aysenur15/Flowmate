@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flowmate.ui.component.AiSuggestion
 
-
+// StyledAiInsights is a composable function that displays AI insights in a styled format.
 @Composable
 fun StyledAiInsights(insights: List<AiSuggestion>) {
     Column(
@@ -40,7 +40,7 @@ fun StyledAiInsights(insights: List<AiSuggestion>) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            color = Color(0xFFF6C6B9),
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(16.dp)

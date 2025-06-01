@@ -16,7 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
+// A composable function to display a grid of habit consistency
 @Composable
 fun HabitConsistencyGrid(habitData: List<Pair<String, List<Boolean>>>) {
     val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

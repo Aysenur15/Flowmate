@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 
+// MainRoute is assumed to be defined elsewhere in your codebase
 @Composable
 fun rememberCurrentRoute(navController: NavHostController): String {
     var currentRoute by remember { mutableStateOf(MainRoute.Home.route) }

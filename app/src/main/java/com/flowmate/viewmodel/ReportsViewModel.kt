@@ -21,7 +21,6 @@ data class Habit(
 )
 
 class ReportsViewModel : ViewModel() {
-
     private val db = FirebaseFirestore.getInstance()
 
     private val _weeklyHabitData = MutableStateFlow<Map<String, Int>>(emptyMap())
@@ -48,6 +47,7 @@ class ReportsViewModel : ViewModel() {
 
     private val MILLIS_PER_MINUTE = 60000
 
+    // Function to fetch habit durations for a specific date
     fun fetchHabitDurationsForDate(userId: String, date: String) {
         val resultMap = mutableMapOf<String, Int>()
 
@@ -80,7 +80,7 @@ class ReportsViewModel : ViewModel() {
                 }
             }
     }
-
+    // Function to fetch habit time segments for a specific date
     fun fetchHabitTimeSegments(userId: String, date: String) {
         val tempMap = mutableMapOf<String, Int>()
 
@@ -124,7 +124,7 @@ class ReportsViewModel : ViewModel() {
                 }
             }
     }
-
+    // Function to fetch habit consistency from completed dates
     fun fetchHabitConsistencyFromCompletedDates(userId: String) {
         val utc = java.util.TimeZone.getTimeZone("UTC")
         val today = Calendar.getInstance(utc).apply {
@@ -175,7 +175,7 @@ class ReportsViewModel : ViewModel() {
                 viewModelScope.launch { _habitConsistency.emit(result) }
             }
     }
-
+    // Function to fetch difficulty data from Firestore
     fun fetchDifficultyDataFromFirestore(userId: String) {
 
         db.collection("users")
@@ -203,7 +203,7 @@ class ReportsViewModel : ViewModel() {
             }
     }
 
-
+    // Function to group habits by day for the last 7 days
     private fun groupHabitsByDay(habits: List<Habit>): List<List<Int>> {
         val today = LocalDate.now()
         val last7Days = (0..6).map { today.minusDays((6 - it).toLong()) }
@@ -225,7 +225,7 @@ class ReportsViewModel : ViewModel() {
         val result = last7Days.map { grouped[it] ?: emptyList() }
         return result
     }
-
+    // Function to fetch AI suggestions based on user's habits
     fun fetchAiSuggestions(userName: String, habits: List<Pair<String, Int>>) {
         val summary = buildString {
             append("The user's current habits are: ")

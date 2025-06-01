@@ -37,11 +37,9 @@ import androidx.compose.ui.unit.dp
 import com.flowmate.ui.theme.ButtonShape
 import com.flowmate.ui.theme.DisabledGray
 import com.flowmate.ui.theme.OutlineBlue
-import com.flowmate.ui.theme.Peach
 import com.flowmate.ui.theme.TextFieldShape
 
-
-// 2. The SignUpScreen composable
+// SignUpScreen is a composable function that displays the sign-up screen UI.
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
@@ -50,15 +48,17 @@ fun SignUpScreen(
     loading: Boolean,
     error: String?
 ) {
+    // State variables to hold user input
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    // Simple form check
+    // Simple form check for validation
     val isFormValid = listOf(name, email, username, password).all { it.isNotBlank() }
 
+    // Main container for the sign-up screen
     Box(
         modifier
             .fillMaxSize()
@@ -83,7 +83,46 @@ fun SignUpScreen(
                 placeholder = { Text("Enter your full name") },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Peach,
+                    focusedContainerColor = Color(0xFF59B7B2),
+                    ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            )
+            Spacer(Modifier.height(24.dp))
+
+            // Username
+            Text("UserName", style = MaterialTheme.typography.bodyLarge)
+            Spacer(Modifier.height(8.dp))
+            TextField(
+                value = username,
+                onValueChange = { username = it },
+                singleLine = true,
+                placeholder = { Text("Pick a username") },
+                shape = TextFieldShape,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF59B7B2),
+
+                    ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            // Email
+            Text("Email", style = MaterialTheme.typography.bodyLarge)
+            Spacer(Modifier.height(8.dp))
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                singleLine = true,
+                placeholder = { Text("you@example.com") },
+                shape = TextFieldShape,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF59B7B2),
+
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,48 +155,15 @@ fun SignUpScreen(
                 },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Peach,
-                ),
+                    focusedContainerColor = Color(0xFF59B7B2),
+
+                    ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
             )
             Spacer(Modifier.height(24.dp))
 
-            // Email
-            Text("Email", style = MaterialTheme.typography.bodyLarge)
-            Spacer(Modifier.height(8.dp))
-            TextField(
-                value = email,
-                onValueChange = { email = it },
-                singleLine = true,
-                placeholder = { Text("you@example.com") },
-                shape = TextFieldShape,
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Peach,
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            )
-            Spacer(Modifier.height(24.dp))
-
-            // Username
-            Text("UserName", style = MaterialTheme.typography.bodyLarge)
-            Spacer(Modifier.height(8.dp))
-            TextField(
-                value = username,
-                onValueChange = { username = it },
-                singleLine = true,
-                placeholder = { Text("Pick a username") },
-                shape = TextFieldShape,
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Peach,
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            )
             Spacer(Modifier.height(32.dp))
 
             // Sign up button

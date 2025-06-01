@@ -13,27 +13,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.flowmate.ui.component.Habit
 import com.flowmate.ui.component.SmartSuggestion
+import com.flowmate.repository.HabitRepository
 
+// ViewModel for managing habits and AI suggestions
 class MyHabitsViewModal : ViewModel() {
 
-    // Alışkanlık listesi
+    //Habit list
     private val _habits = MutableStateFlow<List<Habit>>(emptyList())
     val habits: StateFlow<List<Habit>> = _habits.asStateFlow()
 
-    // Öneriler (stub üzerinden gelenler)
+    // List of habit suggestions from the app
     private val _habitSuggestions = MutableStateFlow<List<SmartSuggestion>>(emptyList())
     val habitSuggestions: StateFlow<List<SmartSuggestion>> = _habitSuggestions.asStateFlow()
 
-    // Gemini AI'den gelen metin çıktısı
-    var aiSuggestions by mutableStateOf("")
-        private set
+    // List of AI-generated suggestions
+    private val _parsedSuggestions = MutableStateFlow<List<SmartSuggestion>>(emptyList())
+    val parsedSuggestions: StateFlow<List<SmartSuggestion>> = _parsedSuggestions
 
     private val repo = AIRepository()
 
     init {
         loadStubData()
     }
-
+    // Load some initial stub data for habits and suggestions
     private fun loadStubData() {
         _habits.value = listOf(
             Habit("1", "Morning Run", 0.3f, isCompletedToday = false, hardnessLevel = 5),
@@ -65,15 +67,55 @@ class MyHabitsViewModal : ViewModel() {
     }
     val apiKey = BuildConfig.GEMINI_API_KEY
 
+    private val _rawAiSuggestions = MutableStateFlow("")
+    val rawAiSuggestions: StateFlow<String> = _rawAiSuggestions
+
+    // Function to load user habits from Firestore
+    fun loadUserHabits(userId: String) {
+        viewModelScope.launch {
+            val repo = AIRepository()
+            val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            db.collection("users").document(userId).collection("habits")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val habits = snapshot.documents.mapNotNull { doc ->
+                        val id = doc.id
+                        val title = doc.getString("title") ?: return@mapNotNull null
+                        val hardness = (doc.get("difficultyLevel") as? Long)?.toInt() ?: 1
+                        Habit(id, title, 0f, false, hardness)
+                    }
+                    _habits.value = habits
+                }
+        }
+    }
+    // Function to fetch AI suggestions based on user's habits
     fun fetchSuggestions(userId: String) {
         viewModelScope.launch {
+            loadUserHabits(userId)
             val userHabits = _habits.value
             val habitNames = userHabits.joinToString(", ") { it.title }
             val prompt = "The user's current habits are: $habitNames. Considering these, suggest 5 new habits in English. List only the suggestions and their explanation very shortly."
-            aiSuggestions = repo.getSuggestions(
-                prompt = prompt,
-                apiKey = BuildConfig.GEMINI_API_KEY
-            )
+            val response = repo.getSuggestions(prompt, BuildConfig.GEMINI_API_KEY)
+            _rawAiSuggestions.value = response
+
+            val suggestions = response
+                .replace("**", "")
+                .split("\n")
+                .filter { it.isNotBlank() }
+                .take(5)
+                .mapIndexed { idx, line ->
+                    val parts = line.split(":", limit = 2)
+                    val title = parts.getOrNull(0)?.trim() ?: "Suggestion ${idx + 1}"
+                    val text = parts.getOrNull(1)?.trim() ?: line.trim()
+                    SmartSuggestion("s$idx", "$title: $text")
+                }
+
+            _parsedSuggestions.value = suggestions
+            android.util.Log.d("ReportsScreen", "AI suggestions fetched for user: $habitNames")
+            android.util.Log.d("ReportsScreen", "Habits: $habits")
+            android.util.Log.d("ReportsScreen", "Summary prompt:$response")
         }
     }
+
+
 }

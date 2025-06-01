@@ -20,6 +20,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Duration
 
+// MainActivity is the entry point of the FlowMate application.
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,9 +44,9 @@ class MainActivity : ComponentActivity() {
 
             val context = LocalContext.current
 
-            // 🔔 Gerçek Daily Reminder test planlaması
+            // Schedule a reminder for testing purposes
             LaunchedEffect(Unit) {
-                val reminderTime = LocalTime.now().plusMinutes(1) // şimdi + 1 dakika
+                val reminderTime = LocalTime.now().plusMinutes(1)
                 val now = LocalDateTime.now()
                 val scheduledTime = LocalDateTime.of(LocalDate.now(), reminderTime)
                 val delayMillis = Duration.between(now, scheduledTime).toMillis()

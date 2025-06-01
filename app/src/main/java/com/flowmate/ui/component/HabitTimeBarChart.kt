@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.flowmate.viewmodel.HabitTimeSegment
 import com.flowmate.viewmodel.TimeRange
 
+// HabitTimeBarChart is a composable function that displays a bar chart of habit time segments.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitTimeBarChart(

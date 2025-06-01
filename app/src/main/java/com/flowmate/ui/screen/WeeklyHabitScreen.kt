@@ -41,6 +41,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+// WeeklyHabitScreen displays a list of habits for the current week, allowing users to track their progress.
 @Composable
 fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
     val habits = viewModel.weeklyHabits.collectAsState().value
@@ -56,7 +57,7 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
         Color(0xFF90CAF9), Color(0xFFE6EE9C), Color(0xFFFFCC80), Color(0xFFF48FB1), Color(0xFFB0BEC5)
     )
 
-    // Haftalar arası geçişte verileri güncelle
+    // Update habits when the selected week changes
     androidx.compose.runtime.LaunchedEffect(selectedWeekStart) {
         viewModel.fetchHabitsForWeek(context, selectedWeekStart, selectedWeekEnd)
     }
@@ -76,7 +77,7 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
             ) {
                 Icon(
                     imageVector = Icons.Filled.ChevronLeft,
-                    contentDescription = "Önceki Hafta",
+                    contentDescription = "Previous Week",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(32.dp)
                 )
@@ -88,7 +89,7 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = if (selectedWeekStart == today.with(DayOfWeek.MONDAY)) "Bu Hafta" else "",
+                    text = if (selectedWeekStart == today.with(DayOfWeek.MONDAY)) "This week" else "",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -99,13 +100,13 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
             ) {
                 Icon(
                     imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = "Sonraki Hafta",
+                    contentDescription = "Next week",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(32.dp)
                 )
             }
         }
-
+        // Header row for the habit grid
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),

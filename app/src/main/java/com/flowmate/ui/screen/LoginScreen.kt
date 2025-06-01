@@ -40,10 +40,9 @@ import com.flowmate.R
 import com.flowmate.ui.theme.ButtonShape
 import com.flowmate.ui.theme.DisabledGray
 import com.flowmate.ui.theme.OutlineBlue
-import com.flowmate.ui.theme.Peach
 import com.flowmate.ui.theme.TextFieldShape
 
-// 2. The LoginScreen composable
+// LoginScreen is a composable function that displays the login screen UI.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -54,12 +53,13 @@ fun LoginScreen(
     error: String?,
     viewModel: com.flowmate.viewmodel.AuthViewModel
 ) {
-    // UI state
+    // UI state variables
     var username by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     val isFormValid = email.isNotBlank() && password.isNotBlank()
 
+    // Main container for the login screen
     Box(
         modifier
             .fillMaxSize()
@@ -73,7 +73,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(40.dp))
-            // TODO: Replace with your real logo
+            // Logo
             Icon(
                 painter = painterResource(R.drawable.icon),
                 contentDescription = "FlowMate Logo",
@@ -82,7 +82,7 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(48.dp))
 
-            // Username / Email field
+            // Email field
             Text(
                 text = "Email",
                 style = MaterialTheme.typography.bodyLarge,
@@ -97,7 +97,7 @@ fun LoginScreen(
                 placeholder = { Text("Enter your email") },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Peach,
+                    focusedContainerColor = Color(0xFF59B7B2),
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,8 +132,8 @@ fun LoginScreen(
                 },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Peach,
-                ),
+                    focusedContainerColor = Color(0xFF59B7B2),
+                    ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -205,7 +205,7 @@ fun LoginScreen(
             )
         }
 
-        // --- Sentetik veri ekleme butonu ---
+        /* --- data insert button for firestore ---
         Button(
             onClick = { viewModel.seedFirestoreWithSampleData() },
             modifier = Modifier
@@ -214,6 +214,8 @@ fun LoginScreen(
         ) {
             Text("Sentetik Veri Ekle")
         }
+        */
+
     }
 }
 

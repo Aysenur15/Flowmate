@@ -15,6 +15,7 @@ import java.time.LocalTime
 import java.time.LocalDateTime
 import java.time.Year
 
+// ViewModel for managing yearly habits and reminders
 class YearlyHabitViewModel(
     private val repository: HabitRepository,
     private val userId: String
@@ -26,6 +27,7 @@ class YearlyHabitViewModel(
     private val _completedDays = MutableStateFlow<Set<LocalDate>>(emptySet())
     val completedDays: StateFlow<Set<LocalDate>> = _completedDays
 
+    // Fetch habits from Firestore and schedule reminders
     fun fetchHabitsFromFirestore(context: Context) {
         viewModelScope.launch {
             val habits = repository.getHabitsFromFirestore(userId)
@@ -62,7 +64,6 @@ class YearlyHabitViewModel(
             _completedDays.value = allCompletedDays
         }
     }
-
     fun nextYear(context: Context) {
         _year.value += 1
         fetchHabitsFromFirestore(context)
@@ -72,7 +73,7 @@ class YearlyHabitViewModel(
         _year.value -= 1
         fetchHabitsFromFirestore(context)
     }
-
+    // Pick random days in the current year for yearly habits
     private fun pickRandomDaysInYear(count: Int): List<LocalDate> {
         val year = LocalDate.now().year
         val daysInYear = (1..Year.of(year).length()).map { dayOfYear ->

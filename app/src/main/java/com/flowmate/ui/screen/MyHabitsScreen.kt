@@ -39,12 +39,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,17 +63,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.flowmate.repository.HabitRepository
 import com.flowmate.ui.component.Habit
+import com.flowmate.ui.component.MainRoute
 import com.flowmate.ui.component.MonthlyHabitViewModelFactory
 import com.flowmate.ui.component.SmartSuggestion
 import com.flowmate.ui.component.WeeklyHabitViewModelFactory
 import com.flowmate.ui.component.YearlyHabitViewModelFactory
 import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MonthlyHabitViewModel
+import com.flowmate.viewmodel.MyHabitsViewModal
 import com.flowmate.viewmodel.WeeklyHabitViewModel
 import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+// Habit Screen with Modal Bottom Sheet for Adding and Editing Habits and viewing completion rates
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyHabitsWithModalSheet(
@@ -91,13 +97,16 @@ fun MyHabitsWithModalSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val habitsViewModel: MyHabitsViewModal = viewModel()
+    val parsedSuggestions by habitsViewModel.parsedSuggestions.collectAsState()
+
 
     var habitList by remember { mutableStateOf<List<Habit>>(emptyList()) }
     var editingHabit by remember { mutableStateOf<Habit?>(null) }
     var editFrequency by remember { mutableStateOf("") }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
-    // Yeni alışkanlık ekleme için state'ler
+    // new habit state variables
     var newHabitName by remember { mutableStateOf("") }
     var hardnessLevel by remember { mutableStateOf("") }
     var frequencyCount by remember { mutableStateOf("") }
@@ -113,6 +122,8 @@ fun MyHabitsWithModalSheet(
             monthlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
             yearlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
             habitList = habitRepository.getHabitsFromFirestore(userId)
+            habitsViewModel.loadUserHabits(userId)
+            habitsViewModel.fetchSuggestions(userId)
         }
     }
 
@@ -139,7 +150,7 @@ fun MyHabitsWithModalSheet(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (suggestions.isNotEmpty()) {
+            if (parsedSuggestions.isNotEmpty()) {
                 Text(
                     text = "Suggestions for you",
                     style = MaterialTheme.typography.titleMedium,
@@ -149,10 +160,11 @@ fun MyHabitsWithModalSheet(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(suggestions) { suggestion ->
+                    items(parsedSuggestions) { suggestion ->
                         Card(
                             shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.size(width = 200.dp, height = 100.dp)
+                            modifier = Modifier.size(width = 200.dp, height = 100.dp),
+                            colors = Color(0xFFF6C6B9).let { CardDefaults.cardColors(containerColor = it) }
                         ) {
                             Box(Modifier.padding(12.dp)) {
                                 Text(
@@ -166,7 +178,7 @@ fun MyHabitsWithModalSheet(
             }
             Spacer(modifier = Modifier.height(24.dp))
             Button(
-                onClick = { navController.navigate("habitProgress") },
+                onClick = { navController.navigate(MainRoute.HabitProgress.route) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
@@ -187,8 +199,8 @@ fun MyHabitsWithModalSheet(
                         Color(0xFF90CAF9), Color(0xFFE6EE9C), Color(0xFFFFCC80), Color(0xFFF48FB1), Color(0xFFB0BEC5)
                     )
                     val habitColorsDark = listOf(
-                        Color(0xFF5E35B1), Color(0xFF00897B), Color(0xFFF4511E), Color(0xFF388E3C), Color(0xFFFBC02D),
-                        Color(0xFF1976D2), Color(0xFF689F38), Color(0xFFFFA000), Color(0xFFD81B60), Color(0xFF455A64)
+                        Color(0xFF5E35B1), Color(0xFF008984), Color(0xFFF4511E), Color(0xFF006064), Color(0xFFFBC02D),
+                        Color(0xFF2B19D2), Color(0xFF689F38), Color(0xFFFFA000), Color(0xFFD81B60), Color(0xFF455A64)
                     )
                     val colorList = if (isDark) habitColorsDark else habitColorsLight
                     val cardBg = colorList[habit.id.hashCode().let { if (it < 0) -it else it } % colorList.size]
@@ -265,7 +277,7 @@ fun MyHabitsWithModalSheet(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // Düzenleme modalı
+
         if (editingHabit != null) {
             ModalBottomSheet(
                 onDismissRequest = { editingHabit = null },
@@ -322,7 +334,7 @@ fun MyHabitsWithModalSheet(
             }
         }
 
-        // Silme onayı modalı
+        // delete confirmation modal
         if (showDeleteConfirm && editingHabit != null) {
             ModalBottomSheet(
                 onDismissRequest = { showDeleteConfirm = false },
@@ -358,7 +370,7 @@ fun MyHabitsWithModalSheet(
             }
         }
 
-        // Yeni alışkanlık ekleme modalı
+        // new habit modal
         if (sheetState.isVisible) {
             ModalBottomSheet(
                 onDismissRequest = { scope.launch { sheetState.hide() } },
@@ -380,7 +392,15 @@ fun MyHabitsWithModalSheet(
                         label = { Text("Habit name") },
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Gray,
+                        focusedContainerColor = Color(0xFFE0F7FA),
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color(0xFF64B2A9),
+                        unfocusedBorderColor = Color(0xFF7B55C2)
+                    )
                     )
                     Spacer(Modifier.height(16.dp))
 
@@ -394,7 +414,15 @@ fun MyHabitsWithModalSheet(
                         label = { Text("Hardness level (1-5)") },
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Gray,
+                            focusedContainerColor = Color(0xFFE0F7FA),
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = Color(0xFF64B2A9),
+                            unfocusedBorderColor = Color(0xFF7B55C2)
+                        )
                     )
                     Spacer(Modifier.height(16.dp))
 
@@ -409,7 +437,14 @@ fun MyHabitsWithModalSheet(
                         label = { Text("How many times?") },
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Gray,
+                            focusedContainerColor = Color(0xFFE0F7FA),
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = Color(0xFF64B2A9),
+                            unfocusedBorderColor = Color(0xFF7B55C2))
                     )
                     Spacer(Modifier.height(12.dp))
 
@@ -425,7 +460,14 @@ fun MyHabitsWithModalSheet(
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = periodDropdownExpanded) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor()
+                                .menuAnchor(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Gray,
+                                focusedContainerColor = Color(0xFFE0F7FA),
+                                unfocusedContainerColor = Color.White,
+                                focusedBorderColor = Color(0xFF64B2A9),
+                                unfocusedBorderColor = Color(0xFF7B55C2))
                         )
 
                         ExposedDropdownMenu(
@@ -466,19 +508,42 @@ fun MyHabitsWithModalSheet(
                         Text("Reminder", style = MaterialTheme.typography.bodyLarge)
                         Switch(
                             checked = reminderEnabled,
-                            onCheckedChange = { reminderEnabled = it }
+                            onCheckedChange = { reminderEnabled = it },
+                            colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF7B55C2),
+                                uncheckedThumbColor = Color(0xFFB0BEC5), checkedTrackColor = Color(0xFF7B55C2).copy(alpha = 0.5f),)
                         )
                     }
 
                     if (reminderEnabled) {
                         Spacer(Modifier.height(12.dp))
+                        val context = LocalContext.current
+                        val timePickerDialog = remember {
+                            android.app.TimePickerDialog(
+                                context,
+                                { _, hour: Int, minute: Int ->
+                                    val formatted = String.format("%02d:%02d", hour, minute)
+                                    reminderTime = formatted
+                                },
+                                8, 0, false
+                            )
+                        }
                         OutlinedTextField(
                             value = reminderTime,
-                            onValueChange = { reminderTime = it },
-                            label = { Text("Reminder Time (e.g., 08:00 AM)") },
+                            onValueChange = {}, // Disable manual editing
+                            label = { Text("Reminder Time (e.g., 08:00)") },
                             singleLine = true,
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { timePickerDialog.show() },
+                            enabled = false, // Disable keyboard input
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Gray,
+                                focusedContainerColor = Color(0xFFE0F7FA),
+                                unfocusedContainerColor = Color.White,
+                                focusedBorderColor = Color(0xFF64B2A9),
+                                unfocusedBorderColor = Color(0xFF7B55C2))
                         )
                     }
 
@@ -498,7 +563,11 @@ fun MyHabitsWithModalSheet(
                                 reminderTime = ""
                                 scope.launch { sheetState.hide() }
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color(0xFF7B55C2),
+                                disabledContentColor = Color.Gray
+                            )
                         ) {
                             Text("Cancel")
                         }
@@ -526,7 +595,8 @@ fun MyHabitsWithModalSheet(
                                             habitRepository.addHabitToFirestore(userId, habit)
                                             habitList = habitRepository.getHabitsFromFirestore(userId)
                                         } catch (e: Exception) {
-                                            // Hata yönetimi
+                                            // Handle error
+                                            e.printStackTrace()
                                         }
                                         newHabitName = ""
                                         hardnessLevel = ""
@@ -538,7 +608,11 @@ fun MyHabitsWithModalSheet(
                                     }
                                 }
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF7B55C2),
+                                contentColor = Color(0xFFFCFCFD)
+                            )
                         ) {
                             Text("Add")
                         }

@@ -42,6 +42,7 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
+// A simple calendar screen that allows users to select dates and add events
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
@@ -102,7 +103,7 @@ fun CalendarScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color(0xFF7B55C2),
                         textAlign = when (dow) {
                             DayOfWeek.SATURDAY -> TextAlign.End
                             DayOfWeek.SUNDAY -> TextAlign.Start
@@ -129,7 +130,7 @@ fun CalendarScreen(
                 itemsIndexed(List(totalCells) { it }) { index, _ ->
                     val dayNumber = index - firstDayOfWeek + 1
                     if (index < firstDayOfWeek) {
-                        Box(modifier = Modifier.size(40.dp)) { /* empty */ }
+                        Box(modifier = Modifier.size(40.dp)) { }
                     } else {
                         val date = currentMonth.atDay(dayNumber)
                         val isSelected = date == selectedDate
@@ -140,7 +141,7 @@ fun CalendarScreen(
                                 .size(40.dp)
                                 .background(
                                     color = when {
-                                        isSelected -> MaterialTheme.colorScheme.primary
+                                        isSelected -> Color(0xFF7B55C2)
                                         isToday -> ButtonMint.copy(alpha = 0.3f)
                                         else -> Color.Transparent
                                     },

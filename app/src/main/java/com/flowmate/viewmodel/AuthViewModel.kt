@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+// ViewModel for managing authentication state and user data
 class AuthViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
@@ -18,19 +19,13 @@ class AuthViewModel(
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    // for greeting on HomeScreen
-    //private val _currentUserName = MutableStateFlow("")
-    //val currentUserName: StateFlow<String> = _currentUserName
-
-
-
     private val _user = MutableStateFlow<UserEntity?>(null)
     val user: StateFlow<UserEntity?> = _user.asStateFlow()
 
     val currentUserName = _user.asStateFlow().map { user ->
         user?.username ?: ""
     }
-
+    // Flow that emits the current user's name, or an empty string if no user is logged in
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
@@ -51,7 +46,7 @@ class AuthViewModel(
             _loading.value = false
         }
     }
-
+    // Function to log in a user with email and password
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _loading.value = true

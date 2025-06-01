@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// A simple card to display a daily message or quote
 @Composable
 fun DailyMessageCard(quote: String, author: String) {
     Box(

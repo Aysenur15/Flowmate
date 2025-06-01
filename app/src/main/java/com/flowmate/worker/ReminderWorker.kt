@@ -10,11 +10,12 @@ import java.time.LocalTime
 import java.util.concurrent.TimeUnit
 import java.time.Duration
 
+// Worker that handles habit reminders
 class ReminderWorker(
     context: Context,
     workerParams: WorkerParameters
 ) : Worker(context, workerParams) {
-
+    // This worker is responsible for showing a notification and rescheduling itself
     override fun doWork(): Result {
         val title = inputData.getString("habit_title") ?: "Habit Reminder"
         val typeString = inputData.getString("habit_type") ?: "DAILY"
@@ -22,7 +23,7 @@ class ReminderWorker(
 
         NotificationHelper.showNotification(applicationContext, title)
 
-        // Tekrar için planlama
+        // Parse the type and time from input data
         val type = HabitType.valueOf(typeString)
         val reminderTime = LocalTime.parse(timeString)
         val now = LocalDateTime.now()
@@ -36,12 +37,12 @@ class ReminderWorker(
 
         val delay = Duration.between(now, nextDateTime).toMillis()
 
-        // Kendisini tekrar planla
+        // Reschedule the reminder for the next occurrence
         enqueueReminder(applicationContext, title, delay, type, reminderTime)
 
         return Result.success()
     }
-
+    // Companion object to enqueue the reminder worker
     companion object {
         fun enqueueReminder(
             context: Context,
@@ -63,8 +64,8 @@ class ReminderWorker(
                 .build()
 
             WorkManager.getInstance(context).enqueueUniqueWork(
-                title, // title is used as unique ID
-                ExistingWorkPolicy.REPLACE, // replaces any previous job with the same title
+                title,
+                ExistingWorkPolicy.REPLACE,
                 request
             )
         }

@@ -35,6 +35,7 @@ fun HabitDifficultyBreakdown(userId: String) {
         Text("Data loading...")
     }
 }
+// Composable function to display the breakdown graph
 fun mapToDifficultyCounts(raw: List<List<Int>>): List<DifficultyCounts> {
     return raw.mapIndexed { index, dailyList ->
         var easy = 0
