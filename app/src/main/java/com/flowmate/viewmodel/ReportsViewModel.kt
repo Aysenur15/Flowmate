@@ -1,8 +1,10 @@
 package com.flowmate.viewmodel
 
+import com.flowmate.repository.AIRepository
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowmate.BuildConfig
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +13,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
-import com.flowmate.ui.component.DifficultyCounts
 
 
 data class Habit(
@@ -34,6 +35,11 @@ class ReportsViewModel : ViewModel() {
 
     private val _difficultyRawData = MutableStateFlow<List<List<Int>>>(emptyList())
     val difficultyRawData: StateFlow<List<List<Int>>> = _difficultyRawData
+
+    private val aiRepo = AIRepository()
+    private val _aiSuggestions = MutableStateFlow("")
+    val aiSuggestions: StateFlow<String> = _aiSuggestions
+
 
     private val colors = listOf(
         Color(0xFF42A5F5), Color(0xFF66BB6A), Color(0xFFFFA726),
@@ -218,6 +224,22 @@ class ReportsViewModel : ViewModel() {
 
         val result = last7Days.map { grouped[it] ?: emptyList() }
         return result
+    }
+
+    fun fetchAiSuggestions(userName: String, habits: List<Pair<String, Int>>) {
+        val summary = buildString {
+            append("The user's current habits are: ")
+            append(habits.joinToString(", ") { it.first })
+            append(". Considering these, suggest 5 new habits in English. For each, give a short (1-2 sentences) explanation of why it is useful. Do not use the words 'Habit' or 'Benefit' in your response. Keep explanations concise. List only the suggestions and their explanations.")
+        }
+
+        viewModelScope.launch {
+            val suggestions = aiRepo.getSuggestions(
+                prompt = summary,
+                apiKey = BuildConfig.GEMINI_API_KEY
+            )
+            _aiSuggestions.value = suggestions
+        }
     }
 
 }

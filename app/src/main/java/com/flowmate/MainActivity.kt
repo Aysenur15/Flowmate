@@ -12,6 +12,9 @@ import com.flowmate.ui.permissions.NotificationPermissionRequester
 import com.flowmate.ui.theme.FlowMateTheme
 import com.flowmate.viewmodel.SettingsViewModel
 import com.flowmate.worker.ReminderWorker
+import com.google.ai.client.generativeai.GenerativeModel
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
