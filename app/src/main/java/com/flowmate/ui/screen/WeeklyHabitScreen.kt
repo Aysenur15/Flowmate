@@ -14,13 +14,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.SentimentSatisfied
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,43 +43,70 @@ import java.util.Locale
 
 @Composable
 fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
-
     val habits = viewModel.weeklyHabits.collectAsState().value
-    val daysOfWeek = DayOfWeek.values().toList() // Sunday to Saturday
-
-    // 🔁 Dynamic current week range
     val today = LocalDate.now()
-    val startOfWeek = today.with(DayOfWeek.MONDAY)
-    val endOfWeek = today.with(DayOfWeek.SUNDAY)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var selectedWeekStart by remember { mutableStateOf(today.with(DayOfWeek.MONDAY)) }
+    val selectedWeekEnd = selectedWeekStart.plusDays(6)
+    val daysOfWeek = DayOfWeek.values().toList() // Sunday to Saturday
     val formatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
-    val weekRange = "${formatter.format(startOfWeek)} – ${formatter.format(endOfWeek)}"
-
+    val weekRange = "${formatter.format(selectedWeekStart)} – ${formatter.format(selectedWeekEnd)}"
     val habitColors = listOf(
-        androidx.compose.ui.graphics.Color(0xFFB39DDB), // mor
-        androidx.compose.ui.graphics.Color(0xFF80CBC4), // turkuaz
-        androidx.compose.ui.graphics.Color(0xFFFFAB91), // turuncu
-        androidx.compose.ui.graphics.Color(0xFFA5D6A7), // yeşil
-        androidx.compose.ui.graphics.Color(0xFFFFF59D), // sarı
-        androidx.compose.ui.graphics.Color(0xFF90CAF9), // mavi
-        androidx.compose.ui.graphics.Color(0xFFE6EE9C), // açık yeşil
-        androidx.compose.ui.graphics.Color(0xFFFFCC80), // açık turuncu
-        androidx.compose.ui.graphics.Color(0xFFF48FB1), // pembe
-        androidx.compose.ui.graphics.Color(0xFFB0BEC5)  // gri
+        Color(0xFFB39DDB), Color(0xFF80CBC4), Color(0xFFFFAB91), Color(0xFFA5D6A7), Color(0xFFFFF59D),
+        Color(0xFF90CAF9), Color(0xFFE6EE9C), Color(0xFFFFCC80), Color(0xFFF48FB1), Color(0xFFB0BEC5)
     )
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "This Week",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            text = weekRange,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+    // Haftalar arası geçişte verileri güncelle
+    androidx.compose.runtime.LaunchedEffect(selectedWeekStart) {
+        viewModel.fetchHabitsForWeek(context, selectedWeekStart, selectedWeekEnd)
+    }
 
+    Column(modifier = Modifier.padding(16.dp)) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { selectedWeekStart = selectedWeekStart.minusWeeks(1) },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ChevronLeft,
+                    contentDescription = "Önceki Hafta",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text(
+                    text = weekRange,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = if (selectedWeekStart == today.with(DayOfWeek.MONDAY)) "Bu Hafta" else "",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            IconButton(
+                onClick = { selectedWeekStart = selectedWeekStart.plusWeeks(1) },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ChevronRight,
+                    contentDescription = "Sonraki Hafta",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -84,16 +118,14 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
             )
             daysOfWeek.forEach { day ->
                 Text(
-                    text = day.name.take(3), // Mon, Tue...
+                    text = day.name.take(3),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.weight(1f)
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             itemsIndexed(habits) { habitIndex, habit ->
                 val color = habitColors[habitIndex % habitColors.size]
@@ -111,6 +143,7 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
                         fontWeight = FontWeight.Medium
                     )
                     daysOfWeek.forEach { day ->
+                        val date = selectedWeekStart.with(day)
                         val status = habit.weekStatus[day] ?: HabitStatus.NONE
                         val icon = when (status) {
                             HabitStatus.DONE -> Icons.Default.Check
@@ -137,3 +170,4 @@ fun WeeklyHabitScreen(viewModel: WeeklyHabitViewModel) {
         }
     }
 }
+

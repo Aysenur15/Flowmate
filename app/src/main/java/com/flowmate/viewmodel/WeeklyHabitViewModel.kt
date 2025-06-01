@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.flowmate.repository.HabitRepository
 import com.flowmate.ui.component.Habit
 import com.flowmate.ui.component.HabitStatus
-import com.flowmate.ui.component.WeeklyHabit
 import com.flowmate.ui.component.HabitType
+import com.flowmate.ui.component.WeeklyHabit
 import com.flowmate.worker.ReminderScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +29,6 @@ class WeeklyHabitViewModel(
 
     private val currentWeekDays = DayOfWeek.values().toList()
 
-    // ⚠️ Context parametresi eklendi!
     fun fetchHabitsFromFirestore(context: Context) {
         viewModelScope.launch {
             val habits = repository.getHabitsFromFirestore(userId)
@@ -64,6 +63,36 @@ class WeeklyHabitViewModel(
         }
     }
 
+    fun fetchHabitsForWeek(context: Context, weekStart: LocalDate, weekEnd: LocalDate) {
+        viewModelScope.launch {
+            val habits = repository.getHabitsFromFirestore(userId)
+            val result = habits.map { habit ->
+                if (habit.reminderEnabled && habit.reminderTime != null && habit.frequency.contains("week", ignoreCase = true)) {
+                    try {
+                        val time = LocalTime.parse(habit.reminderTime)
+                        val frequency = habit.frequency.filter { it.isDigit() }.toIntOrNull() ?: 1
+                        val randomDays = pickRandomWeekDays(frequency)
+                        val dates = getDatesForThisWeek(randomDays, weekStart)
+                        dates.forEach { date ->
+                            val dateTime = LocalDateTime.of(date, time)
+                            ReminderScheduler.scheduleReminderIfEnabled(
+                                context = context,
+                                title = habit.title,
+                                targetTime = dateTime,
+                                isEnabled = true,
+                                type = HabitType.WEEKLY,
+                                time = time
+                            )
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+                habitToWeeklyHabitForWeek(habit, weekStart)
+            }
+            _weeklyHabits.value = result
+        }
+    }
 
     private fun habitToWeeklyHabit(habit: Habit): WeeklyHabit {
         val completedDates = habit.completedDates.map {
@@ -75,6 +104,22 @@ class WeeklyHabitViewModel(
             if (completedDates.contains(dateForDay)) HabitStatus.DONE else HabitStatus.NONE
         }.toMutableMap()
 
+        return WeeklyHabit(
+            id = habit.id,
+            title = habit.title,
+            weekStatus = weekStatus
+        )
+    }
+
+    private fun habitToWeeklyHabitForWeek(habit: Habit, weekStart: LocalDate): WeeklyHabit {
+        val completedDates = habit.completedDates.map {
+            java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+        }
+        val weekDays = DayOfWeek.values().toList()
+        val weekStatus = weekDays.associateWith { day ->
+            val dateForDay = weekStart.with(day)
+            if (completedDates.contains(dateForDay)) HabitStatus.DONE else HabitStatus.NONE
+        }.toMutableMap()
         return WeeklyHabit(
             id = habit.id,
             title = habit.title,
@@ -100,6 +145,7 @@ class WeeklyHabitViewModel(
             list.map { it.copy(weekStatus = resetStatus.toMutableMap()) }
         }
     }
+
     private fun pickRandomWeekDays(count: Int): List<DayOfWeek> {
         val allDays = DayOfWeek.values().toList()
         return allDays.shuffled().take(count.coerceAtMost(7))
@@ -109,5 +155,9 @@ class WeeklyHabitViewModel(
         val today = LocalDate.now()
         val startOfWeek = today.with(DayOfWeek.MONDAY)
         return days.map { startOfWeek.with(it) }
+    }
+
+    private fun getDatesForThisWeek(days: List<DayOfWeek>, weekStart: LocalDate): List<LocalDate> {
+        return days.map { weekStart.with(it) }
     }
 }
