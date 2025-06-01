@@ -9,7 +9,6 @@ import androidx.room.Update
 
 @Dao
 interface HabitDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHabit(habit: HabitEntity)
 

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+// MyTasksViewModal is a ViewModel that manages the state of tasks in the application.
 class MyTasksViewModal : ViewModel() {
 
     // stubbed tasks
@@ -17,7 +18,7 @@ class MyTasksViewModal : ViewModel() {
     }
 
     private fun loadStubData() {
-        // populate some dummy tasks
+        // This function initializes the tasks with some stub data.
         _tasks.value = listOf(
             TaskItem("1", "Complete the report", "2023-10-01", false),
             TaskItem("2", "Prepare for the meeting", "2023-10-02", true),

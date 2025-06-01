@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flowmate.ui.component.WeeklyHabitPieChart
 import com.flowmate.viewmodel.ReportsViewModel
 
+// WeeklyHabitReportScreen is a composable function that displays a weekly habit report.
 @Composable
 fun WeeklyHabitReportScreen(viewModel: ReportsViewModel = viewModel()) {
     val data by viewModel.weeklyHabitData.collectAsState()

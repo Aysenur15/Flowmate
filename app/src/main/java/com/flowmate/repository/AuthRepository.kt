@@ -11,7 +11,7 @@ class AuthRepository(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) {
-
+    // Singleton pattern for AuthRepository
     suspend fun registerUser(
         name: String,
         email: String,
@@ -20,7 +20,7 @@ class AuthRepository(
     ): Result<UserEntity> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val userId = result.user?.uid ?: return Result.failure(Exception("UID alınamadı"))
+            val userId = result.user?.uid ?: return Result.failure(Exception("UID cannot be taken."))
 
             val user = UserEntity(
                 userId = userId,
@@ -28,7 +28,6 @@ class AuthRepository(
                 email = email,
                 themePreference = "light",
                 createdAt = System.currentTimeMillis(),
-                // password alanı çıkarıldı
             )
 
             firestore.collection("users").document(userId).set(user).await()
@@ -39,22 +38,21 @@ class AuthRepository(
             Result.failure(e)
         }
     }
-
+    // Login user with email and password
     suspend fun loginUser(email: String, password: String): Result<UserEntity> {
         return try {
             val result = auth.signInWithEmailAndPassword(email, password).await()
-            val userId = result.user?.uid ?: return Result.failure(Exception("UID boş"))
+            val userId = result.user?.uid ?: return Result.failure(Exception("UID is missing."))
 
             val snapshot = firestore.collection("users").document(userId).get().await()
-            val userMap = snapshot.data ?: return Result.failure(Exception("Firestore'da kullanıcı bulunamadı"))
-
+            val userMap = snapshot.data ?: return Result.failure(Exception("Cannot find user."))
+            // Ensure the userMap contains all required fields.
             val userEntity = UserEntity(
                 userId = userId,
                 username = userMap["username"] as String,
                 email = userMap["email"] as String,
                 themePreference = userMap["themePreference"] as String,
                 createdAt = userMap["createdAt"] as Long,
-                // password yok!
             )
 
             userDao.insertUser(userEntity)
@@ -64,7 +62,6 @@ class AuthRepository(
             Result.failure(e)
         }
     }
-
 
     fun signOut() {
         auth.signOut()

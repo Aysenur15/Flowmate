@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
+// Data Access Object for UserEntity
 @Database(entities = [UserEntity::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
@@ -23,7 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
 
             return instance!!
         }
-
+        // Build the Room database instance
         private fun buildRoomDB(context: Context) = Room.databaseBuilder(
             context.applicationContext,
             AppDatabase::class.java,

@@ -83,7 +83,7 @@ fun SignUpScreen(
                 placeholder = { Text("Enter your full name") },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF4DB6AC),
+                    focusedContainerColor = Color(0xFF59B7B2),
                     ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -101,7 +101,7 @@ fun SignUpScreen(
                 placeholder = { Text("Pick a username") },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF4DB6AC),
+                    focusedContainerColor = Color(0xFF59B7B2),
 
                     ),
                 modifier = Modifier
@@ -121,7 +121,7 @@ fun SignUpScreen(
                 placeholder = { Text("you@example.com") },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF4DB6AC),
+                    focusedContainerColor = Color(0xFF59B7B2),
 
                 ),
                 modifier = Modifier
@@ -155,7 +155,7 @@ fun SignUpScreen(
                 },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF4DB6AC),
+                    focusedContainerColor = Color(0xFF59B7B2),
 
                     ),
                 modifier = Modifier

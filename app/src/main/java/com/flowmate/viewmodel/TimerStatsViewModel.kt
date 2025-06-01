@@ -15,13 +15,13 @@ import java.util.Locale
 enum class TimeRange {
     DAILY, WEEKLY, MONTHLY
 }
-
+// Data class to represent a segment of time spent on a habit
 data class HabitTimeSegment(
     val habitName: String,
     val minutes: Int,
     val color: Color
 )
-
+// ViewModel to manage the timer statistics and time segments
 class TimerStatsViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
 
@@ -45,13 +45,13 @@ class TimerStatsViewModel : ViewModel() {
         val today = getTodayDate()
         loadTimeSegments(TimeRange.WEEKLY, userId = userId.toString(), date = today)
     }
-
+    // Function to handle range selection
     fun onRangeSelected(range: TimeRange) {
         _selectedRange.value = range
         val today = getTodayDate()
         loadTimeSegments(range, userId = userId.toString(), date = today)
     }
-
+    // Function to load time segments based on the selected range
    fun loadTimeSegments(range: TimeRange, userId: String, date: String) {
        db.collection("users")
            .document(userId)
@@ -125,11 +125,12 @@ class TimerStatsViewModel : ViewModel() {
                }
            }
    }
+    // Function to get today's date in "yyyy-MM-dd" format
     private fun getTodayDate(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return sdf.format(Date())
     }
-
+    // Function to check if a document date is within the past 'days' days from a reference date
     private fun isWithinPastDays(docDate: String, referenceDate: String, days: Int): Boolean {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return try {

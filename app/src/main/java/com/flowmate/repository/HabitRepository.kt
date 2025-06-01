@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 class HabitRepository {
+    // Singleton instance
     private val habits = mutableListOf<Habit>()
     private val firestore = FirebaseFirestore.getInstance()
 
@@ -37,7 +38,7 @@ class HabitRepository {
     fun getHabitById(habitId: String): Habit? {
         return habits.find { it.id == habitId }
     }
-
+    // Firestore works
     suspend fun addHabitToFirestore(userId: String, habit: Habit) {
         val habitMap = hashMapOf(
             "habitId" to habit.id,
@@ -87,21 +88,20 @@ class HabitRepository {
             .document(userId)
             .collection("habits")
             .document(habitId)
-        println("Firestore güncelleme deneniyor: userId=$userId, habitId=$habitId, today=$today")
+        println("Firestore updates: userId=$userId, habitId=$habitId, today=$today")
         try {
             habitRef.update("completedDates", FieldValue.arrayUnion(today)).await()
-            println("Firestore BAŞARILI şekilde güncellendi.")
+            println("Firestore updated successfully.")
         } catch (e: Exception) {
-            println("Firestore update HATASI: ${e.message}")
+            println("Firestore update error: ${e.message}")
         }
     }
 
     fun cancelReminderForHabit(context: Context, habitTitle: String) {
         WorkManager.getInstance(context).cancelAllWorkByTag(habitTitle)
     }
-
+    //Delete habit completely
     suspend fun deleteHabitCompletely(context: Context, userId: String, habit: Habit) {
-        // 1. Firestore'dan sil
         firestore.collection("users")
             .document(userId)
             .collection("habits")
@@ -109,13 +109,13 @@ class HabitRepository {
             .delete()
             .await()
 
-        // 2. WorkManager hatırlatıcılarını iptal et
+        // WorkManager reminder cancel
         WorkManager.getInstance(context).cancelAllWorkByTag(habit.title)
 
-        // 3. Local list'ten kaldır (opsiyonel, genelde Flow güncellenir zaten)
+        // Remove from local list
         habits.removeAll { it.id == habit.id }
     }
-
+    // Update habit frequency
     suspend fun updateHabitFrequency(userId: String, habitId: String, newFrequency: String) {
         if (habitId.isBlank()) return
         val habitRef = firestore.collection("users")
@@ -125,10 +125,10 @@ class HabitRepository {
         try {
             habitRef.update("recurrence", newFrequency).await()
         } catch (e: Exception) {
-            println("Firestore update HATASI (recurrence): ${e.message}")
+            println("Firestore update error (recurrence): ${e.message}")
         }
     }
-
+    // Calculate streak based on completed dates
     fun calculateStreak(completedDates: List<Long>): Int {
         if (completedDates.isEmpty()) return 0
         val today = java.time.LocalDate.now()
@@ -147,20 +147,12 @@ class HabitRepository {
         }
         return streak
     }
-
-    /**
-     * Her kronometre kaydını, user -> habit -> habitTimes alt koleksiyonuna ekler.
-     * @param userId Kullanıcı ID'si
-     * @param habitId Alışkanlık ID'si
-     * @param date Kayıt tarihi (string formatında, örn: yyyy-MM-dd)
-     * @param minutes Süre (dakika cinsinden)
-     * @param moodNote Opsiyonel not
-     */
+    // Add habit time entry to Firestore
     suspend fun addHabitTimeToFirestore(
         userId: String,
         habitId: String,
-        date: String, // Tarih artık string (örn: yyyy-MM-dd)
-        minutes: Int, // Süre dakika cinsinden
+        date: String, // Date format: "yyyy-MM-dd"
+        minutes: Int, //Time spent in minutes
         moodNote: String = ""
     ) {
         val timeEntry = hashMapOf(

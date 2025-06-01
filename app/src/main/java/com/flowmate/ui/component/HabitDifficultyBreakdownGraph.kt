@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flowmate.ui.component.DifficultyCounts
 
+// To hold counts of each difficulty level for a day
 @Composable
 fun HabitDifficultyBreakdownGraph(data: List<DifficultyCounts>) {
     val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

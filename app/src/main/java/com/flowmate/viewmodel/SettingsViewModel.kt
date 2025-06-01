@@ -35,14 +35,14 @@ class SettingsViewModel : ViewModel() {
         _quietHours.value = Pair(start, end)
     }
 
-    // Notification Time (for scheduling reminders, if needed)
+    // Notification Time
     private val _notificationTime = MutableStateFlow(LocalTime.of(9, 0))
     val notificationTime: StateFlow<LocalTime> = _notificationTime
     fun setNotificationTime(time: LocalTime) {
         _notificationTime.value = time
     }
 
-    // Reset All App Settings (extend this for database/cache reset)
+    // Reset All App Settings
     fun resetData() {
         _isNotificationsEnabled.value = false
         _isNotificationSoundOn.value = true
@@ -50,6 +50,5 @@ class SettingsViewModel : ViewModel() {
         _notificationTime.value = LocalTime.of(9, 0)
         _quietHours.value = Pair(LocalTime.of(22, 0), LocalTime.of(7, 0))
 
-        // TODO: Add Room database/cache clearing logic here if needed
     }
 }

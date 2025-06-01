@@ -12,7 +12,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 
-// 2. Data models
+// Data models
 data class Habit(
     val id: String,
     val title: String,
@@ -32,11 +32,10 @@ data class SmartSuggestion(
     val text: String
 )
 
-// 2) Data model for a task
 data class TaskItem(
     val id: String,
     val title: String,
-    val dueTime: String,          // e.g. "Today, 5:00 PM"
+    val dueTime: String,
     val isCompleted: Boolean,
     val reminderEnabled: Boolean=false,
     val reminderTime: String?=null,

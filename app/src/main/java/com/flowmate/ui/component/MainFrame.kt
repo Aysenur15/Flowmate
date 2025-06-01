@@ -106,8 +106,8 @@ fun MainFrame(
             },
             bottomBar = {
                 BottomAppBar(
-                    containerColor = Color(0xFF6E6D6D),// MaterialTheme.colorScheme.secondaryContainer
-                    contentColor = Color(0xFF7743CC),
+                    containerColor = Color(0xFF59B7B2),// MaterialTheme.colorScheme.secondaryContainer
+                    contentColor = Color(0xFF7B55C2),
                 ) {
                     IconButton(
                         onClick = { onNavigateTo(MainRoute.Home) },

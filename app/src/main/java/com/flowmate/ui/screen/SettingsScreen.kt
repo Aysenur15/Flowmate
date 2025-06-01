@@ -39,6 +39,7 @@ import java.time.format.DateTimeFormatter
 import android.Manifest
 import androidx.core.net.toUri
 
+// SettingsScreen is a composable function that displays the settings screen of the app.
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Unit) {
 
@@ -57,8 +58,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
 
         Text("Settings", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
-
-        /*** 2. Notification Settings ***/
+        // Daily Message Card
         NotificationSettingsRow(
             isNotificationsEnabled = isNotificationsEnabled,
             onToggle = { enabled -> viewModel.toggleNotifications(enabled) }
@@ -109,8 +109,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
                 onCheckedChange = { viewModel.toggleTheme(it) }
             )
         }
-
-        /*** Edit password ***/
+        // Notification Time
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
@@ -123,7 +122,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
         }
 
 
-        /*** 9. Send Feedback ***/
+        // Feedback Button
         Button(onClick = {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
                 data = "mailto:help@flowmate.com".toUri()
@@ -134,13 +133,13 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
         }, modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary) // Change the button color
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
 
         ) {
             Text("📩 Send Feedback")
         }
-        /*** 8. Reset Data ***/
 
+    // Reset Data Button
         Button(
             onClick = { viewModel.resetData() },
             modifier = Modifier
@@ -154,12 +153,13 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateTo: (MainRoute) -> Un
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        /*** 10. About App ***/
+        // Version and Developer Info
         HorizontalDivider()
         Text("📱 FlowMate v$versionName", modifier = Modifier.padding(top = 16.dp))
         Text("Developer: FlowMate Software Team")
     }
 }
+// NotificationSettingsRow is a composable function that displays a row with a switch to toggle notifications on or off.
 @Composable
 fun NotificationSettingsRow(
     isNotificationsEnabled: Boolean,
@@ -176,7 +176,7 @@ fun NotificationSettingsRow(
 
         pendingToggle = false
     }
-
+    // If the user has previously requested permission and it was denied, we show a dialog to request permission again.
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -199,14 +199,7 @@ fun NotificationSettingsRow(
         )
     }
 }
-
-
-/**
- * Get the app version name from the package manager.
- *
- * @param context The context of the application.
- * @return The version name of the app, or "1.0" if it cannot be retrieved.
- */
+// getAppVersion is a utility function that retrieves the app version name from the package manager.
 fun getAppVersion(context: Context): String {
     return try {
         val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)

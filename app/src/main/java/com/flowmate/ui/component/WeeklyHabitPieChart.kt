@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// A composable function to display a pie chart for weekly habit completion
 @Composable
 fun WeeklyHabitPieChart(habitCompletionMap: Map<String, Int>) {
     val total = habitCompletionMap.values.sum().toFloat()

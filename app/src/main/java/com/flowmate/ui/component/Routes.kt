@@ -4,7 +4,7 @@ sealed class AuthRoute(val route: String) {
     data object Login : AuthRoute("login")
     data object SignUp : AuthRoute("signup")
 }
-
+// sealed class MainRoute represents the main navigation routes in the app
 sealed class MainRoute(val route: String, val title: String) {
     data object Home : MainRoute("home", "Home")
     data object Habits : MainRoute("my habits", "My Habits")

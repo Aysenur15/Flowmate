@@ -41,6 +41,7 @@ import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+// FlowMateNavGraph is the main navigation graph for the FlowMate app.
 @Composable
 fun FlowMateNavGraph(settingsViewModel: com.flowmate.viewmodel.SettingsViewModel) {
     val navController = rememberNavController()
@@ -103,7 +104,7 @@ fun FlowMateNavGraph(settingsViewModel: com.flowmate.viewmodel.SettingsViewModel
         }
     }
 }
-
+// Navigation graphs for authentication and main app screens
 private fun NavGraphBuilder.authNavGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel,
@@ -132,7 +133,7 @@ private fun NavGraphBuilder.authNavGraph(
         }
     }
 }
-
+// Main navigation graph for the app, containing all main features and screens.
 private fun NavGraphBuilder.mainNavGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel,

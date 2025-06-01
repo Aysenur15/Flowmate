@@ -33,10 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.flowmate.ui.theme.ButtonMint
 
-/**
- * Profile Management screen where users can edit their display name,
- * reset progress, and (in future) export data or change avatar :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}.
- */
+// ProfileScreen is a composable function that displays the user's profile settings.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -120,7 +117,7 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Export Data (future feature)
+            // Export Data
             OutlinedButton(
                 onClick = onExportData,
                 enabled = false,

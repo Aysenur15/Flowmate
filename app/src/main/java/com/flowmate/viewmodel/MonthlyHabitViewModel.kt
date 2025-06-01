@@ -21,12 +21,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import java.time.LocalTime
 
-
+// ViewModel for managing monthly habits and reminders
 class MonthlyHabitViewModel(
     private val repository: HabitRepository,
     private val userId: String
 ) : ViewModel() {
-
 
     private val currentMonth = YearMonth.now()
     private val daysInMonth = (1..currentMonth.lengthOfMonth()).map { currentMonth.atDay(it) }
@@ -34,7 +33,6 @@ class MonthlyHabitViewModel(
     private val _monthlyHabits = MutableStateFlow<List<MonthlyHabit>>(emptyList())
     val monthlyHabits: StateFlow<List<MonthlyHabit>> = _monthlyHabits.asStateFlow()
 
-    // Habit dönüşümü (statüleri LocalDate'e göre oluşturur)
     private fun habitToMonthlyHabit(habit: Habit): MonthlyHabit {
         val completedDates = habit.completedDates.map {
             java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
@@ -51,7 +49,6 @@ class MonthlyHabitViewModel(
         )
     }
 
-    // Firestore'dan habit'leri çekip reminder planlar
     fun fetchHabitsFromFirestore(context: Context) {
         viewModelScope.launch {
             val habits = repository.getHabitsFromFirestore(userId)
@@ -85,7 +82,7 @@ class MonthlyHabitViewModel(
         }
     }
 
-    // Statü güncelle
+    //Update status of a habit for a specific date
     fun updateHabitStatus(habitId: String, date: LocalDate, status: HabitStatus) {
         _monthlyHabits.update { habitList ->
             habitList.map { habit ->
@@ -98,14 +95,14 @@ class MonthlyHabitViewModel(
         }
     }
 
-    // Tüm statüleri sıfırla
+    // Reset the status of all habits for the current month
     fun resetMonth() {
         val resetStatus = daysInMonth.associateWith { HabitStatus.NONE }.toMutableMap()
         _monthlyHabits.update { list ->
             list.map { it.copy(monthStatus = resetStatus.toMutableMap()) }
         }
     }
-    // Rastgele gün seçer
+    // Reset the status of a specific habit for the current month
     private fun pickRandomDaysInMonth(count: Int): List<LocalDate> {
         val today = LocalDate.now()
         val yearMonth = YearMonth.of(today.year, today.month)

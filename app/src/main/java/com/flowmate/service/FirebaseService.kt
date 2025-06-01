@@ -9,13 +9,12 @@ import kotlinx.coroutines.tasks.await
 
 
 class FirebaseService(private val firestore: FirebaseFirestore) {
-
     suspend fun uploadHabit(habit: HabitEntity) {
         val docRef = firestore.collection("users")
             .document(habit.userId)
             .collection("habits")
             .document(habit.habitId)
-
+        // Create a map to hold the habit data
         val habitMap = hashMapOf(
             "habitId" to habit.habitId,
             "userId" to habit.userId,
@@ -30,7 +29,7 @@ class FirebaseService(private val firestore: FirebaseFirestore) {
 
         docRef.set(habitMap, SetOptions.merge()).await()
     }
-
+    // Updates the habit's completion dates
     suspend fun deleteHabit(userId: String, habitId: String) {
         val docRef = firestore.collection("users")
             .document(userId)
@@ -39,7 +38,7 @@ class FirebaseService(private val firestore: FirebaseFirestore) {
 
         docRef.update("isDeleted", true, "syncedAt", FieldValue.serverTimestamp()).await()
     }
-
+    // Fetches all habits for a user that are not marked as deleted
     suspend fun getHabits(userId: String): List<HabitEntity> {
         val snapshot = firestore.collection("users")
             .document(userId)
@@ -63,7 +62,7 @@ class FirebaseService(private val firestore: FirebaseFirestore) {
             )
         }
     }
-
+    // Synchronizes local habits with remote habits
     suspend fun syncHabits(userId: String, localHabits: List<HabitEntity>, habitDao: HabitDao) {
         val remoteHabits = getHabits(userId)
 

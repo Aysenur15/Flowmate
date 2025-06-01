@@ -28,7 +28,7 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 
-
+// Function to update user credentials (username and password)
 fun updateCredentials(
     newUsername: String,
     newPassword: String,
@@ -68,7 +68,7 @@ fun updateCredentials(
 }
 
 
-
+// Composable function for the Edit Credentials screen
 @Composable
 fun EditCredentialsScreen(
     onSaveSuccess: () -> Unit,

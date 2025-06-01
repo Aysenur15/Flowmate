@@ -6,9 +6,9 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+
 object ReminderScheduler {
-
-
+// Schedules a reminder if the feature is enabled and the target time is in the future.
     fun scheduleReminderIfEnabled(
         context: Context,
         title: String,
@@ -25,7 +25,6 @@ object ReminderScheduler {
         if (delay > 0) {
             ReminderWorker.enqueueReminder(context, title, delay, type, time)
         }
-
 
     }
 

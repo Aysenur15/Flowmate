@@ -6,6 +6,7 @@ import java.util.Calendar
 import java.util.Locale
 
 object FirestoreSeeder {
+    // This function seeds the Firestore database with sample data for testing purposes.
     fun seedFirestoreWithSampleData() {
         val db = FirebaseFirestore.getInstance()
         val userId = "leJ77vgw5pYlCj0fawhOVwoTJqx1"
@@ -15,7 +16,7 @@ object FirestoreSeeder {
             "habitId" to "habit_001",
             "userId" to userId,
             "title" to "Morning Run",
-            "difficultyLevel" to 5, // INT olarak veriyoruz
+            "difficultyLevel" to 5, //Indicates a hard habit
             "completedDates" to listOf(
                 1716768000000, // May 27
                 1716854400000  // May 28
@@ -43,7 +44,7 @@ object FirestoreSeeder {
         )
         db.collection("habits").document("habit_003").set(habit3)
 
-        // OPTIONAL: Zaman segmentleri (habitTimes)
+        // Time entries for the last 7 days
         val today = Calendar.getInstance()
         for (i in 0..6) {
             val cal = Calendar.getInstance().apply {
@@ -61,7 +62,7 @@ object FirestoreSeeder {
             db.collection("users")
                 .document(userId)
                 .collection("habits")
-                .document("habit_001") // örnek için tek habit'e ekliyoruz
+                .document("habit_001")
                 .collection("habitTimes")
                 .document(dateStr)
                 .set(timeEntry)

@@ -42,7 +42,7 @@ import com.flowmate.ui.theme.DisabledGray
 import com.flowmate.ui.theme.OutlineBlue
 import com.flowmate.ui.theme.TextFieldShape
 
-// 2. LoginScreen is a composable function that displays the login screen UI.
+// LoginScreen is a composable function that displays the login screen UI.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -97,7 +97,7 @@ fun LoginScreen(
                 placeholder = { Text("Enter your email") },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF4DB6AC),
+                    focusedContainerColor = Color(0xFF59B7B2),
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,7 +132,7 @@ fun LoginScreen(
                 },
                 shape = TextFieldShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF4DB6AC),
+                    focusedContainerColor = Color(0xFF59B7B2),
                     ),
                 modifier = Modifier
                     .fillMaxWidth()

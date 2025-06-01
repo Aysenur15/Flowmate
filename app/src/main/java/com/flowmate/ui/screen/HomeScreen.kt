@@ -63,7 +63,7 @@ fun HomeScreen(
                 .padding(vertical = 12.dp),
             elevation = CardDefaults.cardElevation(4.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer // or any color you like
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -71,7 +71,7 @@ fun HomeScreen(
                     text = "\"$quote\"",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer // ensure readable contrast
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
