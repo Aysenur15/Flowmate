@@ -1,6 +1,7 @@
 package com.flowmate.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -71,7 +74,6 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 
-// 3. The MyHabitsScreen composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyHabitsScreen(
@@ -99,6 +101,7 @@ fun MyHabitsScreen(
     val habitRepository = remember { HabitRepository() }
     val habitViewModel = remember { MyHabitsViewModal() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val habitColorsLight = listOf(
         Color(0xFFB39DDB), // mor
@@ -124,6 +127,10 @@ fun MyHabitsScreen(
         Color(0xFFD81B60), // koyu pembe
         Color(0xFF455A64)  // koyu gri
     )
+
+    var editingHabit by remember { mutableStateOf<Habit?>(null) }
+    var editFrequency by remember { mutableStateOf("") }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
@@ -187,7 +194,12 @@ fun MyHabitsScreen(
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = cardBg),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                editingHabit = habit
+                                editFrequency = habit.frequency ?: ""
+                            }
                     ) {
                         Row(
                             Modifier
@@ -241,12 +253,113 @@ fun MyHabitsScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+        }
 
+        if (editingHabit != null) {
+            ModalBottomSheet(
+                onDismissRequest = { editingHabit = null },
+                tonalElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                ) {
+                    Text("Edit Habit", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.height(16.dp))
+                    Text("Title: ${editingHabit?.title}", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = editFrequency,
+                        onValueChange = { editFrequency = it },
+                        label = { Text("Recurrence (e.g. 3 per week)") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            editingHabit?.let { habit ->
+                                scope.launch {
+                                    habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
+                                    editingHabit = editingHabit?.copy(isCompletedToday = true)
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Mark as Completed")
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            editingHabit?.let { habit ->
+                                scope.launch {
+                                    habitRepository.updateHabitFrequency(userId.toString(), habit.id, editFrequency)
+                                    editingHabit = editingHabit?.copy(frequency = editFrequency)
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Update Recurrence")
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = { showDeleteConfirm = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Delete Habit", color = Color.White)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = { editingHabit = null },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
 
+        if (showDeleteConfirm && editingHabit != null) {
+            ModalBottomSheet(
+                onDismissRequest = { showDeleteConfirm = false },
+                tonalElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Are you sure you want to delete this habit?", color = Color.Red)
+                    Spacer(Modifier.height(16.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Button(onClick = {
+                            editingHabit?.let { habit ->
+                                scope.launch {
+                                    habitRepository.deleteHabitCompletely(context, userId.toString(), habit)
+                                    editingHabit = null
+                                    showDeleteConfirm = false
+                                }
+                            }
+                        }, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
+                            Text("Delete", color = Color.White)
+                        }
+                        OutlinedButton(onClick = { showDeleteConfirm = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                }
+            }
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -504,9 +617,8 @@ fun MyHabitsWithModalSheet(
         onAddHabit = { scope.launch { sheetState.show() } },
         navController = navController
     )
-
-
 }
+
 class WeeklyHabitViewModelFactory(
     private val repository: HabitRepository,
     private val userId: String
@@ -515,6 +627,7 @@ class WeeklyHabitViewModelFactory(
         return WeeklyHabitViewModel(repository, userId) as T
     }
 }
+
 class MonthlyHabitViewModelFactory(
     private val repository: HabitRepository,
     private val userId: String
@@ -523,6 +636,7 @@ class MonthlyHabitViewModelFactory(
         return MonthlyHabitViewModel(repository, userId) as T
     }
 }
+
 class YearlyHabitViewModelFactory(
     private val repository: HabitRepository,
     private val userId: String

@@ -118,5 +118,16 @@ class HabitRepository {
         habits.removeAll { it.id == habit.id }
     }
 
-
+    suspend fun updateHabitFrequency(userId: String, habitId: String, newFrequency: String) {
+        if (habitId.isBlank()) return
+        val habitRef = firestore.collection("users")
+            .document(userId)
+            .collection("habits")
+            .document(habitId)
+        try {
+            habitRef.update("recurrence", newFrequency).await()
+        } catch (e: Exception) {
+            println("Firestore update HATASI (recurrence): ${e.message}")
+        }
+    }
 }
