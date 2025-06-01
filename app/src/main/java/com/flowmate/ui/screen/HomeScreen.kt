@@ -12,9 +12,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -25,6 +28,7 @@ import com.flowmate.ui.component.MainRoute
 import com.flowmate.ui.component.getTodayQuote
 import com.flowmate.ui.theme.ButtonShape
 
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -33,15 +37,13 @@ fun HomeScreen(
 
 ) {
 
-
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
 
         // Greeting Section
         Text(
@@ -54,15 +56,33 @@ fun HomeScreen(
         Spacer(Modifier.height(12.dp))
 
         val (quote, author) = getTodayQuote()
-        Text(
-            text = "\"$quote\"",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        Text(
-            text = "— $author",
-            style = MaterialTheme.typography.labelMedium
-        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer // or any color you like
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "\"$quote\"",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer // ensure readable contrast
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "— $author",
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.End,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
 
         Spacer(Modifier.height(16.dp))
 

@@ -62,34 +62,13 @@ class ReminderWorker(
                 .addTag(title)
                 .build()
 
-            WorkManager.getInstance(context).enqueue(request)
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                title, // title is used as unique ID
+                ExistingWorkPolicy.REPLACE, // replaces any previous job with the same title
+                request
+            )
         }
-
     }
-    private fun enqueueReminder(
-        context: Context,
-        title: String,
-        delayMillis: Long,
-        type: HabitType,
-        reminderTime: LocalTime
-    ) {
-        val data = workDataOf(
-            "habit_title" to title,
-            "habit_type" to type.name,
-            "reminder_time" to reminderTime.toString()
-        )
-
-        val request = OneTimeWorkRequestBuilder<ReminderWorker>()
-            .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
-            .setInputData(data)
-            .addTag(title)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            title, // title is used as unique ID
-            ExistingWorkPolicy.REPLACE, // replaces any previous job with the same title
-            request
-        )
-    }
-
 }
+
+

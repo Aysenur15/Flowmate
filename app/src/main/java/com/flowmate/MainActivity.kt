@@ -12,7 +12,10 @@ import com.flowmate.ui.permissions.NotificationPermissionRequester
 import com.flowmate.ui.theme.FlowMateTheme
 import com.flowmate.viewmodel.SettingsViewModel
 import com.flowmate.worker.ReminderWorker
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.Duration
 
 class MainActivity : ComponentActivity() {
 
@@ -34,24 +37,25 @@ class MainActivity : ComponentActivity() {
 
                 FlowMateNavGraph(settingsViewModel = settingsViewModel)
             }
+
             val context = LocalContext.current
+
+            // 🔔 Gerçek Daily Reminder test planlaması
             LaunchedEffect(Unit) {
-                val delay = 10_000L // 10 saniye sonra bildirim
-                val title = "Test Alarm"
-                val type = HabitType.DAILY
-                val time = LocalTime.now()
+                val reminderTime = LocalTime.now().plusMinutes(1) // şimdi + 1 dakika
+                val now = LocalDateTime.now()
+                val scheduledTime = LocalDateTime.of(LocalDate.now(), reminderTime)
+                val delayMillis = Duration.between(now, scheduledTime).toMillis()
 
                 ReminderWorker.enqueueReminder(
                     context = context,
-                    title = title,
-                    delayMillis = delay,
-                    type = type,
-                    reminderTime = time
+                    title = "Test Daily Reminder",
+                    delayMillis = delayMillis,
+                    type = HabitType.DAILY,
+                    reminderTime = reminderTime
                 )
+
             }
-
         }
-
     }
-
 }

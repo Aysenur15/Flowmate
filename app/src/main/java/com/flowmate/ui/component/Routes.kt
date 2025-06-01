@@ -33,6 +33,7 @@ sealed class MainRoute(val route: String, val title: String) {
                 Achievements.route -> Achievements
                 Settings.route -> Settings
                 EditCredentials.route -> EditCredentials
+                HabitProgress.route -> HabitProgress
                 else -> Home
             }
         }
