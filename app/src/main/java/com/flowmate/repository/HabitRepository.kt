@@ -148,20 +148,33 @@ class HabitRepository {
         return streak
     }
 
-    suspend fun addTimerLogToFirestore(log: com.flowmate.data.TimerLogEntity) {
-        val logMap = hashMapOf(
-            "logId" to log.logId,
-            "userId" to log.userId,
-            "habitId" to log.habitId,
-            "taskId" to log.taskId,
-            "startTime" to log.startTime,
-            "endTime" to log.endTime,
-            "duration" to log.duration,
-            "moodNote" to log.moodNote
+    /**
+     * Her kronometre kaydını, user -> habit -> habitTimes alt koleksiyonuna ekler.
+     * @param userId Kullanıcı ID'si
+     * @param habitId Alışkanlık ID'si
+     * @param date Kayıt tarihi (string formatında, örn: yyyy-MM-dd)
+     * @param minutes Süre (dakika cinsinden)
+     * @param moodNote Opsiyonel not
+     */
+    suspend fun addHabitTimeToFirestore(
+        userId: String,
+        habitId: String,
+        date: String, // Tarih artık string (örn: yyyy-MM-dd)
+        minutes: Int, // Süre dakika cinsinden
+        moodNote: String = ""
+    ) {
+        val timeEntry = hashMapOf(
+            "date" to date,
+            "minutes" to minutes,
+            "moodNote" to moodNote
         )
-        firestore.collection("timer_logs")
-            .document(log.logId)
-            .set(logMap)
+        firestore.collection("users")
+            .document(userId)
+            .collection("habits")
+            .document(habitId)
+            .collection("habitTimes")
+            .document(date)
+            .set(timeEntry)
             .await()
     }
 }

@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.flowmate.ui.component.Habit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -207,18 +206,17 @@ fun ChronometerScreen(
                         Button(
                             onClick = {
                                 if (selectedHabitId != null) {
-                                    val log = com.flowmate.data.TimerLogEntity(
-                                        logId = UUID.randomUUID().toString(),
-                                        userId = userId,
-                                        habitId = selectedHabitId,
-                                        taskId = null,
-                                        startTime = startTime,
-                                        endTime = startTime + elapsed,
-                                        duration = elapsed,
-                                        moodNote = moodNote.takeIf { it.isNotBlank() }
-                                    )
                                     scope.launch {
-                                        com.flowmate.repository.HabitRepository().addTimerLogToFirestore(log)
+                                        // Tarihi string olarak (örn: yyyy-MM-dd) formatla
+                                        val dateStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(startTime))
+                                        val minutes = (elapsed / 60000).toInt().coerceAtLeast(1) // En az 1 dakika
+                                        com.flowmate.repository.HabitRepository().addHabitTimeToFirestore(
+                                            userId = userId,
+                                            habitId = selectedHabitId!!,
+                                            date = dateStr,
+                                            minutes = minutes,
+                                            moodNote = moodNote
+                                        )
                                         showHabitDialog = false
                                         selectedHabitId = null
                                         moodNote = ""
