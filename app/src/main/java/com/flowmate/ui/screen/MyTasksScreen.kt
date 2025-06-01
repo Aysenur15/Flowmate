@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -70,14 +71,14 @@ fun MyTasksScreen(
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     var taskList: List<TaskItem> by remember { mutableStateOf<List<TaskItem>>(emptyList()) }
+    var taskToDelete by remember { mutableStateOf<TaskItem?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(userId) {
         if (userId != null) {
             taskList = taskRepository.getTasksFromFirestore(userId)
         }
     }
-
-
 
     if (sheetState.isVisible) {
         var reminderTime by remember { mutableStateOf("") }
@@ -346,6 +347,53 @@ fun MyTasksScreen(
                                 tint = if (task.isCompleted) DoneColor else PendingColor
                             )
                         }
+
+                        IconButton(onClick = {
+                            taskToDelete = task
+                            showDeleteConfirm = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Task",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showDeleteConfirm && taskToDelete != null) {
+        ModalBottomSheet(
+            onDismissRequest = { showDeleteConfirm = false },
+            tonalElevation = 8.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Are you sure you want to delete?", color = Color.Red)
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Button(onClick = {
+                        val userId = FirebaseAuth.getInstance().currentUser?.uid
+                        if (userId != null && taskToDelete != null) {
+                            scope.launch {
+                                taskRepository.deleteTaskFromFirestore(userId, taskToDelete!!.id)
+                                taskList = taskRepository.getTasksFromFirestore(userId)
+                                showDeleteConfirm = false
+                                taskToDelete = null
+                            }
+                        }
+                    }, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
+                        Text("Delete", color = Color.White)
+                    }
+                    OutlinedButton(onClick = { showDeleteConfirm = false }) {
+                        Text("Cancel")
                     }
                 }
             }

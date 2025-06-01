@@ -85,4 +85,13 @@ class TaskRepository @Inject constructor() {
         taskRef.update("isCompleted", isCompleted).await()
     }
 
+    suspend fun deleteTaskFromFirestore(userId: String, taskId: String) {
+        firestore.collection("users")
+            .document(userId)
+            .collection("tasks")
+            .document(taskId)
+            .delete()
+            .await()
+    }
+
 }
