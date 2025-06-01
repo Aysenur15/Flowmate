@@ -65,12 +65,10 @@ fun MainFrame(
                 HorizontalDivider()
                 Spacer(Modifier.height(8.dp))
 
+                DrawerItem("Profile") { onNavigateTo(MainRoute.Profile) }
                 DrawerItem("Calendar") { onNavigateTo(MainRoute.Calendar) }
                 DrawerItem("Chronometer") { onNavigateTo(MainRoute.Chronometer) }
                 DrawerItem("Reports") { onNavigateTo(MainRoute.Reports) }
-                DrawerItem("Profile") { onNavigateTo(MainRoute.Profile) }
-                DrawerItem("Theme") { onNavigateTo(MainRoute.Theme) }
-                DrawerItem("Achievements") { onNavigateTo(MainRoute.Achievements) }
                 DrawerItem("Settings") { onNavigateTo(MainRoute.Settings) }
                 DrawerItem("Log Out") {
                     scope.launch {

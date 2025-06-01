@@ -357,7 +357,7 @@ fun MyTasksScreen(
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete Task",
-                                tint = Color.Red
+                                tint = Color.DarkGray
                             )
                         }
                     }
