@@ -27,7 +27,6 @@ class HabitRepository {
         }
     }
 
-
     fun updateHabit(updatedHabit: Habit) {
         val index = habits.indexOfFirst { it.id == updatedHabit.id }
         if (index != -1) {
@@ -59,7 +58,6 @@ class HabitRepository {
             .await()
     }
 
-
     suspend fun getHabitsFromFirestore(userId: String): List<Habit> {
         val snapshot = firestore.collection("users")
             .document(userId)
@@ -82,8 +80,6 @@ class HabitRepository {
         }
     }
 
-
-
     suspend fun markHabitCompletedForToday(userId: String, habitId: String) {
         if (habitId.isBlank()) return
         val today = java.time.LocalDate.now().atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -99,9 +95,11 @@ class HabitRepository {
             println("Firestore update HATASI: ${e.message}")
         }
     }
+
     fun cancelReminderForHabit(context: Context, habitTitle: String) {
         WorkManager.getInstance(context).cancelAllWorkByTag(habitTitle)
     }
+
     suspend fun deleteHabitCompletely(context: Context, userId: String, habit: Habit) {
         // 1. Firestore'dan sil
         firestore.collection("users")
@@ -129,5 +127,24 @@ class HabitRepository {
         } catch (e: Exception) {
             println("Firestore update HATASI (recurrence): ${e.message}")
         }
+    }
+
+    fun calculateStreak(completedDates: List<Long>): Int {
+        if (completedDates.isEmpty()) return 0
+        val today = java.time.LocalDate.now()
+        val sortedDates = completedDates.map {
+            java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+        }.sortedDescending()
+        var streak = 0
+        var current = today
+        for (date in sortedDates) {
+            if (date == current) {
+                streak++
+                current = current.minusDays(1)
+            } else if (date.isBefore(current)) {
+                break
+            }
+        }
+        return streak
     }
 }

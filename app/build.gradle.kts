@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -78,6 +80,7 @@ dependencies {
     kapt(libs.androidx.room.compiler)
     implementation (libs.androidx.work.runtime.ktx.v290) // for WorkManager
     implementation (libs.androidx.core.ktx.v1120)
+
 
 
 }

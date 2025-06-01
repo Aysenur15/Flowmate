@@ -27,7 +27,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -40,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -56,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -65,7 +64,6 @@ import com.flowmate.ui.component.MonthlyHabitViewModelFactory
 import com.flowmate.ui.component.SmartSuggestion
 import com.flowmate.ui.component.WeeklyHabitViewModelFactory
 import com.flowmate.ui.component.YearlyHabitViewModelFactory
-import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MonthlyHabitViewModel
 import com.flowmate.viewmodel.WeeklyHabitViewModel
@@ -210,33 +208,43 @@ fun MyHabitsWithModalSheet(
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(
-                                    progress = { habit.weeklyProgress },
-                                    modifier = Modifier.size(48.dp),
-                                    color = HabitProgressColor,
-                                    strokeWidth = 6.dp,
-                                    trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
-                                )
+                            val streak = habitRepository.calculateStreak(habit.completedDates)
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (streak >= 1) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(Color.White, shape = RoundedCornerShape(8.dp))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "\uD83D\uDD25 $streak",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFFFF9800)
+                                            )
+                                        )
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                }
                                 Text(
-                                    text = "${(habit.weeklyProgress * 100).toInt()}%",
-                                    style = MaterialTheme.typography.bodySmall
+                                    text = habit.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
-                            Spacer(Modifier.width(16.dp))
-                            Text(
-                                text = habit.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f),
-                                color = if (isDark) Color.Black else MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(Modifier.width(16.dp))
-                            IconButton(onClick = {
-                                scope.launch {
-                                    habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
-                                    habitList = habitRepository.getHabitsFromFirestore(userId.toString())
-                                }
-                            }) {
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
+                                        habitList = habitRepository.getHabitsFromFirestore(userId.toString())
+                                    }
+                                },
+                                modifier = Modifier
+                                    .size(40.dp)
+                            ) {
                                 val todayMillis = java.time.LocalDate.now()
                                     .atStartOfDay(java.time.ZoneId.systemDefault())
                                     .toInstant()
@@ -246,7 +254,8 @@ fun MyHabitsWithModalSheet(
                                 Icon(
                                     imageVector = icon,
                                     contentDescription = "Toggle Complete",
-                                    tint = TickColor
+                                    tint = TickColor,
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
                         }
@@ -539,3 +548,4 @@ fun MyHabitsWithModalSheet(
         }
     }
 }
+
