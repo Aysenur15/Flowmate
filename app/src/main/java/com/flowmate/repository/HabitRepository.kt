@@ -147,4 +147,21 @@ class HabitRepository {
         }
         return streak
     }
+
+    suspend fun addTimerLogToFirestore(log: com.flowmate.data.TimerLogEntity) {
+        val logMap = hashMapOf(
+            "logId" to log.logId,
+            "userId" to log.userId,
+            "habitId" to log.habitId,
+            "taskId" to log.taskId,
+            "startTime" to log.startTime,
+            "endTime" to log.endTime,
+            "duration" to log.duration,
+            "moodNote" to log.moodNote
+        )
+        firestore.collection("timer_logs")
+            .document(log.logId)
+            .set(logMap)
+            .await()
+    }
 }

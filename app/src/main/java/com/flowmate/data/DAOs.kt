@@ -120,15 +120,17 @@ interface TimerDao {
 
 @Dao
 interface TimerLogDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTimerLog(timerLog: TimerLogEntity)
+    suspend fun insertTimerLog(log: TimerLogEntity)
 
-    @Query("SELECT * FROM timer_logs WHERE userId = :userId")
-    suspend fun getTimerLogsByUser(userId: String): List<TimerLogEntity>
+    @Query("SELECT * FROM timer_logs WHERE userId = :userId ORDER BY startTime DESC")
+    suspend fun getTimerLogsForUser(userId: String): List<TimerLogEntity>
 
-    @Delete
-    suspend fun deleteTimerLog(timerLog: TimerLogEntity)
+    @Query("SELECT * FROM timer_logs WHERE habitId = :habitId ORDER BY startTime DESC")
+    suspend fun getTimerLogsForHabit(habitId: String): List<TimerLogEntity>
+
+    @Query("SELECT * FROM timer_logs WHERE taskId = :taskId ORDER BY startTime DESC")
+    suspend fun getTimerLogsForTask(taskId: String): List<TimerLogEntity>
 }
 
 @Dao

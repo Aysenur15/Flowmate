@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,11 +16,14 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,22 +32,33 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.flowmate.ui.component.Habit
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChronometerScreen() {
+fun ChronometerScreen(
+    habitList: List<Habit> = emptyList(),
+    userId: String
+) {
     // Stopwatch state
     var startTime by remember { mutableLongStateOf(0L) }
     var accumulated by remember { mutableLongStateOf(0L) }
     var elapsed by remember { mutableLongStateOf(0L) }
     var isRunning by remember { mutableStateOf(false) }
     var laps by remember { mutableStateOf(listOf<Long>()) }
+    var showHabitDialog by remember { mutableStateOf(false) }
+    var selectedHabitId by remember { mutableStateOf<String?>(null) }
+    var moodNote by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     // Ticker when running
     LaunchedEffect(isRunning) {
@@ -85,7 +100,14 @@ fun ChronometerScreen() {
             ) {
                 // Start / Pause button
                 Button(
-                    onClick = { isRunning = !isRunning },
+                    onClick = {
+                        if (isRunning) {
+                            isRunning = false
+                            showHabitDialog = true // Kronometre durunca dialog aç
+                        } else {
+                            isRunning = true
+                        }
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
@@ -145,6 +167,73 @@ fun ChronometerScreen() {
                     }
                 }
             }
+
+            // Habit seçme ve log kaydetme dialogu
+            if (showHabitDialog) {
+                AlertDialog(
+                    onDismissRequest = { showHabitDialog = false },
+                    title = { Text("Which Habit do you want to add this duration to?") },
+                    text = {
+                        Column {
+                            var expanded by remember { mutableStateOf(false) }
+                            OutlinedButton(onClick = { expanded = true }) {
+                                Text(habitList.find { it.id == selectedHabitId }?.title ?: "Choose Habit")
+                            }
+                            androidx.compose.material3.DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                habitList.forEach { habit ->
+                                    DropdownMenuItem(
+                                        text = { Text(habit.title) },
+                                        onClick = {
+                                            selectedHabitId = habit.id
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = moodNote,
+                                onValueChange = { moodNote = it },
+                                label = { Text("Mood/Note (Optional)") },
+                                singleLine = false,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                if (selectedHabitId != null) {
+                                    val log = com.flowmate.data.TimerLogEntity(
+                                        logId = UUID.randomUUID().toString(),
+                                        userId = userId,
+                                        habitId = selectedHabitId,
+                                        taskId = null,
+                                        startTime = startTime,
+                                        endTime = startTime + elapsed,
+                                        duration = elapsed,
+                                        moodNote = moodNote.takeIf { it.isNotBlank() }
+                                    )
+                                    scope.launch {
+                                        com.flowmate.repository.HabitRepository().addTimerLogToFirestore(log)
+                                        showHabitDialog = false
+                                        selectedHabitId = null
+                                        moodNote = ""
+                                    }
+                                }
+                            }
+                        ) { Text("Save") }
+                    },
+                    dismissButton = {
+                        OutlinedButton(onClick = { showHabitDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -168,3 +257,4 @@ private fun formatTime(ms: Long): String {
         append("%02d".format(centis))
     }
 }
+

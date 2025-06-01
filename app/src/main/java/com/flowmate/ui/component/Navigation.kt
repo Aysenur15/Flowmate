@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -214,7 +215,18 @@ private fun NavGraphBuilder.mainNavGraph(
         }
 
         composable(MainRoute.Chronometer.route) {
-            ChronometerScreen()
+            val habitRepository = remember { com.flowmate.repository.HabitRepository() }
+            val userId = user?.userId ?: ""
+            val habitList = remember { mutableStateOf<List<com.flowmate.ui.component.Habit>>(emptyList()) }
+            LaunchedEffect(userId) {
+                if (userId.isNotBlank()) {
+                    habitList.value = habitRepository.getHabitsFromFirestore(userId)
+                }
+            }
+            ChronometerScreen(
+                habitList = habitList.value,
+                userId = userId
+            )
         }
 
         composable(MainRoute.Reports.route) {
