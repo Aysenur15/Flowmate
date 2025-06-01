@@ -68,76 +68,69 @@ import com.flowmate.ui.component.YearlyHabitViewModelFactory
 import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MonthlyHabitViewModel
-import com.flowmate.viewmodel.MyHabitsViewModal
 import com.flowmate.viewmodel.WeeklyHabitViewModel
 import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyHabitsScreen(
-    habits: List<Habit>,
+fun MyHabitsWithModalSheet(
     suggestions: List<SmartSuggestion>,
-    onToggleComplete: (habitId: String) -> Unit,
-    onAddHabit: () -> Unit,
     navController: NavController
 ) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val weeklyHabitViewModel: WeeklyHabitViewModel = viewModel(
+        factory = WeeklyHabitViewModelFactory(HabitRepository(), userId ?: "")
+    )
     val monthlyHabitViewModel: MonthlyHabitViewModel = viewModel(
         factory = MonthlyHabitViewModelFactory(HabitRepository(), userId ?: "")
     )
     val yearlyHabitViewModel: YearlyHabitViewModel = viewModel(
         factory = YearlyHabitViewModelFactory(HabitRepository(), userId ?: "")
     )
-    var habitList: List<Habit> by remember { mutableStateOf<List<Habit>>(emptyList()) }
-
-    LaunchedEffect(key1 = Unit) {
-        if (userId != null) {
-            monthlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
-            yearlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
-        }
-    }
-
     val habitRepository = remember { HabitRepository() }
-    val habitViewModel = remember { MyHabitsViewModal() }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val habitColorsLight = listOf(
-        Color(0xFFB39DDB), // mor
-        Color(0xFF80CBC4), // turkuaz
-        Color(0xFFFFAB91), // turuncu
-        Color(0xFFA5D6A7), // yeşil
-        Color(0xFFFFF59D), // sarı
-        Color(0xFF90CAF9), // mavi
-        Color(0xFFE6EE9C), // açık yeşil
-        Color(0xFFFFCC80), // açık turuncu
-        Color(0xFFF48FB1), // pembe
-        Color(0xFFB0BEC5)  // gri
-    )
-    val habitColorsDark = listOf(
-        Color(0xFF5E35B1), // koyu mor
-        Color(0xFF00897B), // koyu turkuaz
-        Color(0xFFF4511E), // koyu turuncu
-        Color(0xFF388E3C), // koyu yeşil
-        Color(0xFFFBC02D), // koyu sarı
-        Color(0xFF1976D2), // koyu mavi
-        Color(0xFF689F38), // koyu açık yeşil
-        Color(0xFFFFA000), // koyu açık turuncu
-        Color(0xFFD81B60), // koyu pembe
-        Color(0xFF455A64)  // koyu gri
-    )
-
+    var habitList by remember { mutableStateOf<List<Habit>>(emptyList()) }
     var editingHabit by remember { mutableStateOf<Habit?>(null) }
     var editFrequency by remember { mutableStateOf("") }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
+    // Yeni alışkanlık ekleme için state'ler
+    var newHabitName by remember { mutableStateOf("") }
+    var hardnessLevel by remember { mutableStateOf("") }
+    var frequencyCount by remember { mutableStateOf("") }
+    var frequencyPeriod by remember { mutableStateOf("day") }
+    var periodDropdownExpanded by remember { mutableStateOf(false) }
+    val periodOptions = listOf("day", "week", "month", "year")
+    var reminderEnabled by remember { mutableStateOf(false) }
+    var reminderTime by remember { mutableStateOf("") }
+
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            weeklyHabitViewModel.fetchHabitsFromFirestore(navController.context)
+            monthlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
+            yearlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
+            habitList = habitRepository.getHabitsFromFirestore(userId)
+        }
+    }
+
+    val onToggleCompleteHandler: (String) -> Unit = { habitId ->
+        if (userId != null) {
+            scope.launch {
+                habitRepository.markHabitCompletedForToday(userId, habitId)
+                habitList = habitRepository.getHabitsFromFirestore(userId)
+            }
+        }
+    }
+
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { onAddHabit() },
+                onClick = { scope.launch { sheetState.show() } },
                 icon = { Icon(Icons.Default.Add, contentDescription = "Add Habit") },
                 text = { Text("New") }
             )
@@ -189,8 +182,16 @@ fun MyHabitsScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(habits) { habit ->
+                items(habitList) { habit ->
                     val isDark = isSystemInDarkTheme()
+                    val habitColorsLight = listOf(
+                        Color(0xFFB39DDB), Color(0xFF80CBC4), Color(0xFFFFAB91), Color(0xFFA5D6A7), Color(0xFFFFF59D),
+                        Color(0xFF90CAF9), Color(0xFFE6EE9C), Color(0xFFFFCC80), Color(0xFFF48FB1), Color(0xFFB0BEC5)
+                    )
+                    val habitColorsDark = listOf(
+                        Color(0xFF5E35B1), Color(0xFF00897B), Color(0xFFF4511E), Color(0xFF388E3C), Color(0xFFFBC02D),
+                        Color(0xFF1976D2), Color(0xFF689F38), Color(0xFFFFA000), Color(0xFFD81B60), Color(0xFF455A64)
+                    )
                     val colorList = if (isDark) habitColorsDark else habitColorsLight
                     val cardBg = colorList[habit.id.hashCode().let { if (it < 0) -it else it } % colorList.size]
                     Card(
@@ -234,7 +235,6 @@ fun MyHabitsScreen(
                                 scope.launch {
                                     habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
                                     habitList = habitRepository.getHabitsFromFirestore(userId.toString())
-
                                 }
                             }) {
                                 val todayMillis = java.time.LocalDate.now()
@@ -253,10 +253,10 @@ fun MyHabitsScreen(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+        // Düzenleme modalı
         if (editingHabit != null) {
             ModalBottomSheet(
                 onDismissRequest = { editingHabit = null },
@@ -280,21 +280,6 @@ fun MyHabitsScreen(
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            editingHabit?.let { habit ->
-                                scope.launch {
-                                    habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
-                                    habitRepository.getHabitsFromFirestore(userId.toString())
-                                    editingHabit = editingHabit?.copy(isCompletedToday = true)
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Mark as Completed")
-                    }
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
@@ -328,6 +313,7 @@ fun MyHabitsScreen(
             }
         }
 
+        // Silme onayı modalı
         if (showDeleteConfirm && editingHabit != null) {
             ModalBottomSheet(
                 onDismissRequest = { showDeleteConfirm = false },
@@ -349,6 +335,7 @@ fun MyHabitsScreen(
                                     habitRepository.deleteHabitCompletely(context, userId.toString(), habit)
                                     editingHabit = null
                                     showDeleteConfirm = false
+                                    habitList = habitRepository.getHabitsFromFirestore(userId.toString())
                                 }
                             }
                         }, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
@@ -361,264 +348,194 @@ fun MyHabitsScreen(
                 }
             }
         }
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MyHabitsWithModalSheet(
-    habits: List<Habit>,
-    suggestions: List<SmartSuggestion>,
-    onToggleComplete: (String) -> Unit,
-    onAddHabit: (Habit) -> Unit,
-    navController: NavController
-) {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    val weeklyHabitViewModel: WeeklyHabitViewModel = viewModel(
-        factory = WeeklyHabitViewModelFactory(HabitRepository(), userId ?: "")
-    )
-    val monthlyHabitViewModel: MonthlyHabitViewModel = viewModel(
-        factory = MonthlyHabitViewModelFactory(HabitRepository(), userId ?: "")
-    )
-    val yearlyHabitViewModel: YearlyHabitViewModel = viewModel(
-        factory = YearlyHabitViewModelFactory(HabitRepository(), userId ?: "")
-    )
-
-    LaunchedEffect(key1 = Unit) {
-        if (userId != null) {
-            weeklyHabitViewModel.fetchHabitsFromFirestore(navController.context)
-            monthlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
-            yearlyHabitViewModel.fetchHabitsFromFirestore(navController.context)
-        }
-    }
-    val habitRepository = remember { HabitRepository() }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-
-
-    var habitList by remember { mutableStateOf<List<Habit>>(emptyList()) }
-
-    LaunchedEffect(userId) {
-        if (userId != null) {
-            habitList = habitRepository.getHabitsFromFirestore(userId)
-        }
-    }
-
-    val onToggleCompleteHandler: (String) -> Unit = { habitId ->
-        if (userId != null) {
-            scope.launch {
-                android.util.Log.d("MyHabitsScreen", " Toggling completion for habit: $habitId")
-
-                habitRepository.markHabitCompletedForToday(userId, habitId)
-                habitList = habitRepository.getHabitsFromFirestore(userId)
-            }
-        }
-    }
-
-    var newHabitName by remember { mutableStateOf("") }
-    var hardnessLevel by remember { mutableStateOf("") }
-    var frequencyCount by remember { mutableStateOf("") }
-    var frequencyPeriod by remember { mutableStateOf("") }
-    var periodDropdownExpanded by remember { mutableStateOf(false) }
-    val periodOptions = listOf("day", "week", "month", "year")
-    var reminderEnabled by remember { mutableStateOf(false) }
-    var reminderTime by remember { mutableStateOf("") }
-
-    if (sheetState.isVisible) {
-        ModalBottomSheet(
-            onDismissRequest = { scope.launch { sheetState.hide() } },
-            sheetState = sheetState,
-            tonalElevation = 8.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
+        // Yeni alışkanlık ekleme modalı
+        if (sheetState.isVisible) {
+            ModalBottomSheet(
+                onDismissRequest = { scope.launch { sheetState.hide() } },
+                sheetState = sheetState,
+                tonalElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("New Habit", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = newHabitName,
-                    onValueChange = { newHabitName = it },
-                    label = { Text("Habit name") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = hardnessLevel,
-                    onValueChange = {
-                        if (it.all { c -> c.isDigit() } && (it.toIntOrNull() ?: 0) in 1..5 || it.isBlank()) {
-                            hardnessLevel = it
-                        }
-                    },
-                    label = { Text("Hardness level (1-5)") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = frequencyCount,
-                    onValueChange = {
-                        val value = it.toIntOrNull()
-                        if (value in 1..30 || it.isBlank()) {
-                            frequencyCount = it
-                        }
-                    },
-                    label = { Text("How many times?") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(12.dp))
-
-                ExposedDropdownMenuBox(
-                    expanded = periodDropdownExpanded,
-                    onExpandedChange = { periodDropdownExpanded = !periodDropdownExpanded }
-                ) {
-                    OutlinedTextField(
-                        readOnly = true,
-                        value = frequencyPeriod,
-                        onValueChange = {},
-                        label = { Text("Period") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = periodDropdownExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = periodDropdownExpanded,
-                        onDismissRequest = { periodDropdownExpanded = false }
-                    ) {
-                        periodOptions.forEach { period ->
-                            val isSelected = frequencyPeriod == period
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        period,
-                                        color = if (isSelected) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                    )
-                                },
-                                onClick = {
-                                    frequencyPeriod = period
-                                    periodDropdownExpanded = false
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
-                                    )
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier
+                Column(
+                    Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(24.dp)
                 ) {
-                    Text("Reminder", style = MaterialTheme.typography.bodyLarge)
-                    Switch(
-                        checked = reminderEnabled,
-                        onCheckedChange = { reminderEnabled = it }
-                    )
-                }
+                    Text("New Habit", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.height(16.dp))
 
-                if (reminderEnabled) {
-                    Spacer(Modifier.height(12.dp))
                     OutlinedTextField(
-                        value = reminderTime,
-                        onValueChange = { reminderTime = it },
-                        label = { Text("Reminder Time (e.g., 08:00 AM)") },
+                        value = newHabitName,
+                        onValueChange = { newHabitName = it },
+                        label = { Text("Habit name") },
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.fillMaxWidth()
                     )
-                }
+                    Spacer(Modifier.height(16.dp))
 
-                Spacer(Modifier.height(24.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            newHabitName = ""
-                            hardnessLevel = ""
-                            frequencyCount = ""
-                            frequencyPeriod = "day"
-                            reminderEnabled = false
-                            reminderTime = ""
-                            scope.launch { sheetState.hide() }
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Button(
-                        onClick = {
-                            if (newHabitName.isNotBlank() && userId != null) {
-                                val frequency = if (frequencyCount.isNotBlank())
-                                    "$frequencyCount per $frequencyPeriod"
-                                else ""
-
-                                val habit = Habit(
-                                    id = System.currentTimeMillis().toString(),
-                                    title = newHabitName.trim(),
-                                    weeklyProgress = 0f,
-                                    isCompletedToday = false,
-                                    hardnessLevel = hardnessLevel.toIntOrNull() ?: 1,
-                                    frequency = frequency,
-                                    reminderEnabled = reminderEnabled,
-                                    reminderTime = if (reminderEnabled) reminderTime else null
-                                )
-
-                                scope.launch {
-                                    try {
-                                        habitRepository.addHabitToFirestore(userId, habit)
-                                        habitList = habitRepository.getHabitsFromFirestore(userId) // <-- Ekleme sonrası listeyi güncelle
-                                    } catch (e: Exception) {
-
-                                    }
-                                    onAddHabit(habit)
-                                    newHabitName = ""
-                                    hardnessLevel = ""
-                                    frequencyCount = ""
-                                    frequencyPeriod = "day"
-                                    reminderEnabled = false
-                                    reminderTime = ""
-                                    sheetState.hide()
-                                }
+                    OutlinedTextField(
+                        value = hardnessLevel,
+                        onValueChange = {
+                            if (it.all { c -> c.isDigit() } && (it.toIntOrNull() ?: 0) in 1..5 || it.isBlank()) {
+                                hardnessLevel = it
                             }
                         },
-                        modifier = Modifier.weight(1f)
+                        label = { Text("Hardness level (1-5)") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = frequencyCount,
+                        onValueChange = {
+                            val value = it.toIntOrNull()
+                            if (value in 1..30 || it.isBlank()) {
+                                frequencyCount = it
+                            }
+                        },
+                        label = { Text("How many times?") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(12.dp))
+
+                    ExposedDropdownMenuBox(
+                        expanded = periodDropdownExpanded,
+                        onExpandedChange = { periodDropdownExpanded = !periodDropdownExpanded }
                     ) {
-                        Text("Add")
+                        OutlinedTextField(
+                            readOnly = true,
+                            value = frequencyPeriod,
+                            onValueChange = {},
+                            label = { Text("Period") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = periodDropdownExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = periodDropdownExpanded,
+                            onDismissRequest = { periodDropdownExpanded = false }
+                        ) {
+                            periodOptions.forEach { period ->
+                                val isSelected = frequencyPeriod == period
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            period,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                        )
+                                    },
+                                    onClick = {
+                                        frequencyPeriod = period
+                                        periodDropdownExpanded = false
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
+                                        )
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Reminder", style = MaterialTheme.typography.bodyLarge)
+                        Switch(
+                            checked = reminderEnabled,
+                            onCheckedChange = { reminderEnabled = it }
+                        )
+                    }
+
+                    if (reminderEnabled) {
+                        Spacer(Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = reminderTime,
+                            onValueChange = { reminderTime = it },
+                            label = { Text("Reminder Time (e.g., 08:00 AM)") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                newHabitName = ""
+                                hardnessLevel = ""
+                                frequencyCount = ""
+                                frequencyPeriod = "day"
+                                reminderEnabled = false
+                                reminderTime = ""
+                                scope.launch { sheetState.hide() }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Cancel")
+                        }
+
+                        Button(
+                            onClick = {
+                                if (newHabitName.isNotBlank() && userId != null) {
+                                    val frequency = if (frequencyCount.isNotBlank())
+                                        "$frequencyCount per $frequencyPeriod"
+                                    else ""
+
+                                    val habit = Habit(
+                                        id = System.currentTimeMillis().toString(),
+                                        title = newHabitName.trim(),
+                                        weeklyProgress = 0f,
+                                        isCompletedToday = false,
+                                        hardnessLevel = hardnessLevel.toIntOrNull() ?: 1,
+                                        frequency = frequency,
+                                        reminderEnabled = reminderEnabled,
+                                        reminderTime = if (reminderEnabled) reminderTime else null
+                                    )
+
+                                    scope.launch {
+                                        try {
+                                            habitRepository.addHabitToFirestore(userId, habit)
+                                            habitList = habitRepository.getHabitsFromFirestore(userId)
+                                        } catch (e: Exception) {
+                                            // Hata yönetimi
+                                        }
+                                        newHabitName = ""
+                                        hardnessLevel = ""
+                                        frequencyCount = ""
+                                        frequencyPeriod = "day"
+                                        reminderEnabled = false
+                                        reminderTime = ""
+                                        sheetState.hide()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Add")
+                        }
                     }
                 }
             }
         }
     }
-
-    MyHabitsScreen(
-        habits = habitList,
-        suggestions = suggestions,
-        onToggleComplete = onToggleCompleteHandler,
-        onAddHabit = { scope.launch { sheetState.show() } },
-        navController = navController
-    )
 }
-

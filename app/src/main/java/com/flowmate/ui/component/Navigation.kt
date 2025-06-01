@@ -35,7 +35,6 @@ import com.flowmate.viewmodel.MonthlyHabitViewModel
 import com.flowmate.viewmodel.MyHabitsViewModal
 import com.flowmate.viewmodel.MyTasksViewModal
 import com.flowmate.viewmodel.ReportsViewModel
-import com.flowmate.viewmodel.SettingsViewModel
 import com.flowmate.viewmodel.WeeklyHabitViewModel
 import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -157,14 +156,11 @@ private fun NavGraphBuilder.mainNavGraph(
 
         composable(MainRoute.Habits.route) {
             val myHabitViewModal = remember { MyHabitsViewModal() }
-            val habits by myHabitViewModal.habits.collectAsState(initial = emptyList())
+            //val habits by myHabitViewModal.habits.collectAsState(initial = emptyList())
             val suggestions by myHabitViewModal.habitSuggestions.collectAsState(initial = emptyList())
 
             MyHabitsWithModalSheet(
-                habits = habits,
                 suggestions = suggestions,
-                onToggleComplete = { habit -> myHabitViewModal.toggleHabitCompletion(habit) },
-                onAddHabit = { habit -> myHabitViewModal.addHabit(habit) },
                 navController = navController
             )
         }
