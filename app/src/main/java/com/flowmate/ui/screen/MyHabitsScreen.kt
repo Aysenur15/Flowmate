@@ -27,7 +27,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -40,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -59,8 +57,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.flowmate.repository.HabitRepository
@@ -69,7 +65,6 @@ import com.flowmate.ui.component.MonthlyHabitViewModelFactory
 import com.flowmate.ui.component.SmartSuggestion
 import com.flowmate.ui.component.WeeklyHabitViewModelFactory
 import com.flowmate.ui.component.YearlyHabitViewModelFactory
-import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MonthlyHabitViewModel
 import com.flowmate.viewmodel.MyHabitsViewModal
@@ -78,7 +73,7 @@ import com.flowmate.viewmodel.YearlyHabitViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-
+// Habit Screen with Modal Bottom Sheet for Adding and Editing Habits and viewing completion rates
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyHabitsWithModalSheet(
@@ -108,7 +103,7 @@ fun MyHabitsWithModalSheet(
     var editFrequency by remember { mutableStateOf("") }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
-    // Yeni alışkanlık ekleme için state'ler
+    // new habit state variables
     var newHabitName by remember { mutableStateOf("") }
     var hardnessLevel by remember { mutableStateOf("") }
     var frequencyCount by remember { mutableStateOf("") }
@@ -165,7 +160,8 @@ fun MyHabitsWithModalSheet(
                     items(parsedSuggestions) { suggestion ->
                         Card(
                             shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.size(width = 200.dp, height = 100.dp)
+                            modifier = Modifier.size(width = 200.dp, height = 100.dp),
+                            colors = Color(0xFFF6C6B9).let { CardDefaults.cardColors(containerColor = it) }
                         ) {
                             Box(Modifier.padding(12.dp)) {
                                 Text(
@@ -200,8 +196,8 @@ fun MyHabitsWithModalSheet(
                         Color(0xFF90CAF9), Color(0xFFE6EE9C), Color(0xFFFFCC80), Color(0xFFF48FB1), Color(0xFFB0BEC5)
                     )
                     val habitColorsDark = listOf(
-                        Color(0xFF5E35B1), Color(0xFF00897B), Color(0xFFF4511E), Color(0xFF388E3C), Color(0xFFFBC02D),
-                        Color(0xFF1976D2), Color(0xFF689F38), Color(0xFFFFA000), Color(0xFFD81B60), Color(0xFF455A64)
+                        Color(0xFF5E35B1), Color(0xFF008984), Color(0xFFF4511E), Color(0xFF006064), Color(0xFFFBC02D),
+                        Color(0xFF2B19D2), Color(0xFF689F38), Color(0xFFFFA000), Color(0xFFD81B60), Color(0xFF455A64)
                     )
                     val colorList = if (isDark) habitColorsDark else habitColorsLight
                     val cardBg = colorList[habit.id.hashCode().let { if (it < 0) -it else it } % colorList.size]
@@ -278,7 +274,7 @@ fun MyHabitsWithModalSheet(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // Düzenleme modalı
+
         if (editingHabit != null) {
             ModalBottomSheet(
                 onDismissRequest = { editingHabit = null },
@@ -335,7 +331,7 @@ fun MyHabitsWithModalSheet(
             }
         }
 
-        // Silme onayı modalı
+        // delete confirmation modal
         if (showDeleteConfirm && editingHabit != null) {
             ModalBottomSheet(
                 onDismissRequest = { showDeleteConfirm = false },
@@ -371,7 +367,7 @@ fun MyHabitsWithModalSheet(
             }
         }
 
-        // Yeni alışkanlık ekleme modalı
+        // new habit modal
         if (sheetState.isVisible) {
             ModalBottomSheet(
                 onDismissRequest = { scope.launch { sheetState.hide() } },

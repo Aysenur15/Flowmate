@@ -32,8 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import java.util.Locale
 
+// It contains the main frame of the app, with a navigation drawer, a top app bar and a bottom bar.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainFrame(
@@ -106,8 +106,8 @@ fun MainFrame(
             },
             bottomBar = {
                 BottomAppBar(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = Color(0xFF6E6D6D),// MaterialTheme.colorScheme.secondaryContainer
+                    contentColor = Color(0xFF7743CC),
                 ) {
                     IconButton(
                         onClick = { onNavigateTo(MainRoute.Home) },

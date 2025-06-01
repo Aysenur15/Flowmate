@@ -54,6 +54,7 @@ import com.flowmate.ui.theme.PendingColor
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+// Implemented UI for task management screen with features to add, delete and list tasks.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyTasksScreen(
@@ -61,6 +62,7 @@ fun MyTasksScreen(
     onToggleTask: (String) -> Unit,
     onAddTask: (TaskItem) -> Unit
 ) {
+    // State variables for managing the bottom sheet and task input fields
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     var newTaskTitle by remember { mutableStateOf("") }
@@ -80,6 +82,7 @@ fun MyTasksScreen(
         }
     }
 
+    // Show the bottom sheet when the screen is first composed
     if (sheetState.isVisible) {
         var reminderTime by remember { mutableStateOf("") }
 
@@ -244,6 +247,7 @@ fun MyTasksScreen(
             }
         }
     }
+    // Main content of the screen
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -263,22 +267,22 @@ fun MyTasksScreen(
             items(taskList) { task ->
                 val isDark = isSystemInDarkTheme()
                 val taskColorsLight = listOf(
-                    Color(0xFFB39DDB), // mor
-                    Color(0xFF80CBC4), // turkuaz
-                    Color(0xFFFFAB91), // turuncu
-                    Color(0xFFA5D6A7), // yeşil
-                    Color(0xFFFFF59D), // sarı
-                    Color(0xFF90CAF9), // mavi
-                    Color(0xFFE6EE9C), // açık yeşil
-                    Color(0xFFFFCC80), // açık turuncu
-                    Color(0xFFF48FB1), // pembe
-                    Color(0xFFB0BEC5)  // gri
+                    Color(0xFFB39DDB),
+                    Color(0xFF80CBC4),
+                    Color(0xFFFFAB91),
+                    Color(0xFFA5D6A7),
+                    Color(0xFFFFF59D),
+                    Color(0xFF90CAF9),
+                    Color(0xFFE6EE9C),
+                    Color(0xFFFFCC80),
+                    Color(0xFFF48FB1),
+                    Color(0xFFB0BEC5)
                 )
                 val taskColorsDark = listOf(
-                    Color(0xFF5E35B1), // koyu mor
-                    Color(0xFF00897B), // koyu turkuaz
-                    Color(0xFFF4511E), // koyu turuncu
-                    Color(0xFF388E3C), // koyu yeşil
+                    Color(0xFF5E35B1),
+                    Color(0xFF00897B),
+                    Color(0xFFF4511E),
+                    Color(0xFF388E3C),
                     Color(0xFFFBC02D), // koyu sarı
                     Color(0xFF1976D2), // koyu mavi
                     Color(0xFF689F38), // koyu açık yeşil
