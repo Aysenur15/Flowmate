@@ -1,6 +1,12 @@
 package com.flowmate.ui.component
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.flowmate.data.UserEntity
+import com.flowmate.repository.HabitRepository
+import com.flowmate.viewmodel.MonthlyHabitViewModel
+import com.flowmate.viewmodel.WeeklyHabitViewModel
+import com.flowmate.viewmodel.YearlyHabitViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -85,5 +91,33 @@ data class DifficultyCounts(
     val medium: Int,
     val hard: Int
 )
+
+class WeeklyHabitViewModelFactory(
+    private val repository: HabitRepository,
+    private val userId: String
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return WeeklyHabitViewModel(repository, userId) as T
+    }
+}
+
+class MonthlyHabitViewModelFactory(
+    private val repository: HabitRepository,
+    private val userId: String
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return MonthlyHabitViewModel(repository, userId) as T
+    }
+}
+
+class YearlyHabitViewModelFactory(
+    private val repository: HabitRepository,
+    private val userId: String
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return YearlyHabitViewModel(repository, userId) as T
+    }
+}
+
 
 

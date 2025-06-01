@@ -223,14 +223,12 @@ fun MyTasksScreen(
                                 scope.launch {
                                     try {
                                         taskRepository.addTaskToFirestore(userId = userId.toString(), task = newTask)
-                                        taskRepository.getTasksFromFirestore(userId.toString())
-                                    }
-                                    catch ( e: Exception) {
+                                        taskList = taskRepository.getTasksFromFirestore(userId.toString())
+                                    } catch (e: Exception) {
                                         e.printStackTrace()
                                     }
                                 }
                                 onAddTask(newTask)
-
                                 newTaskTitle = ""
                                 newTaskDueTime = ""
                                 reminderEnabled = false
@@ -335,7 +333,7 @@ fun MyTasksScreen(
                                             taskId = task.id,
                                             isCompleted = !task.isCompleted
                                         )
-                                        taskRepository.getTasksFromFirestore(userId)
+                                        taskList = taskRepository.getTasksFromFirestore(userId)
                                     }
                                 }
                             },

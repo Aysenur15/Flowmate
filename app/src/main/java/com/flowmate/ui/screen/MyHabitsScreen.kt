@@ -57,13 +57,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.flowmate.repository.HabitRepository
 import com.flowmate.ui.component.Habit
+import com.flowmate.ui.component.MonthlyHabitViewModelFactory
 import com.flowmate.ui.component.SmartSuggestion
+import com.flowmate.ui.component.WeeklyHabitViewModelFactory
+import com.flowmate.ui.component.YearlyHabitViewModelFactory
 import com.flowmate.ui.theme.HabitProgressColor
 import com.flowmate.ui.theme.TickColor
 import com.flowmate.viewmodel.MonthlyHabitViewModel
@@ -90,6 +91,7 @@ fun MyHabitsScreen(
     val yearlyHabitViewModel: YearlyHabitViewModel = viewModel(
         factory = YearlyHabitViewModelFactory(HabitRepository(), userId ?: "")
     )
+    var habitList: List<Habit> by remember { mutableStateOf<List<Habit>>(emptyList()) }
 
     LaunchedEffect(key1 = Unit) {
         if (userId != null) {
@@ -231,7 +233,7 @@ fun MyHabitsScreen(
                             IconButton(onClick = {
                                 scope.launch {
                                     habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
-                                    habitRepository.getHabitsFromFirestore(userId.toString())
+                                    habitList = habitRepository.getHabitsFromFirestore(userId.toString())
 
                                 }
                             }) {
@@ -284,6 +286,7 @@ fun MyHabitsScreen(
                             editingHabit?.let { habit ->
                                 scope.launch {
                                     habitRepository.markHabitCompletedForToday(userId.toString(), habit.id)
+                                    habitRepository.getHabitsFromFirestore(userId.toString())
                                     editingHabit = editingHabit?.copy(isCompletedToday = true)
                                 }
                             }
@@ -619,29 +622,3 @@ fun MyHabitsWithModalSheet(
     )
 }
 
-class WeeklyHabitViewModelFactory(
-    private val repository: HabitRepository,
-    private val userId: String
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return WeeklyHabitViewModel(repository, userId) as T
-    }
-}
-
-class MonthlyHabitViewModelFactory(
-    private val repository: HabitRepository,
-    private val userId: String
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return MonthlyHabitViewModel(repository, userId) as T
-    }
-}
-
-class YearlyHabitViewModelFactory(
-    private val repository: HabitRepository,
-    private val userId: String
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return YearlyHabitViewModel(repository, userId) as T
-    }
-}
